@@ -2,7 +2,10 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
+import { UserRole } from "../../../generated/prisma";
 import { db } from "~/server/db";
+
+import { parseAdminDiscordUserIdsFromEnv } from "./admin-discord-user-ids";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -14,15 +17,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role?: UserRole;
+  }
 }
 
 /**
@@ -37,20 +38,51 @@ export const authConfig = {
      * ...add more providers here.
      *
      * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
+     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account model.
+     * Refer to the NextAuth.js docs for the provider you want to use. Example:
      *
      * @see https://next-auth.js.org/providers/github
      */
   ],
   adapter: PrismaAdapter(db),
+  events: {
+    signIn: async ({ user, account }) => {
+      const adminDiscordUserIds = parseAdminDiscordUserIdsFromEnv();
+      if (adminDiscordUserIds.length === 0) {
+        return;
+      }
+      if (account?.provider !== "discord") {
+        return;
+      }
+      const discordProviderAccountId = account.providerAccountId;
+      if (typeof discordProviderAccountId !== "string") {
+        return;
+      }
+      const isDiscordUserInAdminList =
+        adminDiscordUserIds.includes(discordProviderAccountId) === true;
+      if (isDiscordUserInAdminList === false) {
+        return;
+      }
+      await db.user.update({
+        where: { id: user.id },
+        data: { role: UserRole.ADMIN },
+      });
+    },
+  },
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: ({ session, user }) => {
+      const userRole = user.role;
+      if (userRole === undefined) {
+        throw new Error("User record is missing role.");
+      }
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+          role: userRole,
+        },
+      };
+    },
   },
 } satisfies NextAuthConfig;

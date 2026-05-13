@@ -5,6 +5,7 @@ import { Theme } from "@radix-ui/themes";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { SiteHeader } from "~/app/_components/site-header";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
@@ -18,14 +19,17 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <Theme hasBackground={false}>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+        <Theme appearance="dark" hasBackground>
+          <TRPCReactProvider>
+            <SiteHeader />
+            {children}
+          </TRPCReactProvider>
         </Theme>
       </body>
     </html>
