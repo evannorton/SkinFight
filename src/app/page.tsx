@@ -1,5 +1,69 @@
+import { Box, Heading, Text } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 
-export default function Home(): ReactElement {
-  return <></>;
+import { HomeNextEventSection } from "~/app/_components/home-next-event-section";
+import { db } from "~/server/db";
+
+export default async function Home(): Promise<ReactElement> {
+  const now = new Date();
+  const nextUpcomingEvent = await db.event.findFirst({
+    where: { date: { gte: now } },
+    orderBy: { date: "asc" },
+    select: { name: true, date: true },
+  });
+
+  let eventDisplayName: string | null = null;
+  let eventStartsAtIso: string | null = null;
+  if (nextUpcomingEvent !== null) {
+    eventStartsAtIso = nextUpcomingEvent.date.toISOString();
+    if (nextUpcomingEvent.name.trim().length > 0) {
+      eventDisplayName = nextUpcomingEvent.name.trim();
+    } else {
+      eventDisplayName = "Untitled";
+    }
+  }
+
+  return (
+    <Box px="6" py="6" style={{ maxWidth: "42rem" }}>
+      <HomeNextEventSection
+        eventDisplayName={eventDisplayName}
+        eventStartsAtIso={eventStartsAtIso}
+      />
+      <Heading as="h2" size="5" weight="bold" mb="3" mt="6">
+        What is Skin Fight?
+      </Heading>
+
+      <Text as="p" size="3" color="gray">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+        occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+        mollit anim id est laborum.
+      </Text>
+
+      <Heading as="h2" size="5" weight="bold" mb="3" mt="6">
+        Rules
+      </Heading>
+      <Text as="p" size="3" color="gray" mb="2">
+        Rule 1: Example text.
+      </Text>
+      <Text as="p" size="3" color="gray" mb="2">
+        Rule 2: Example text.
+      </Text>
+      <Text as="p" size="3" color="gray" mb="2">
+        Rule 3: Example text.
+      </Text>
+      <Text as="p" size="3" color="gray" mb="2">
+        Rule 4: Example text.
+      </Text>
+      <Text as="p" size="3" color="gray" mb="2">
+        Rule 5: Example text.
+      </Text>
+      <Text as="p" size="3" color="gray">
+        Rule 6: Example text.
+      </Text>
+    </Box>
+  );
 }

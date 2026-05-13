@@ -8,8 +8,7 @@ import { auth } from "~/server/auth";
 export async function SiteHeader(): Promise<ReactElement> {
   const session = await auth();
   const isUserSignedIn = session !== null;
-  const isSessionUserAdmin =
-    session?.user.role === UserRole.ADMIN;
+  const isSessionUserAdmin = session?.user.role === UserRole.ADMIN;
 
   return (
     <header>

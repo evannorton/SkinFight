@@ -5,5 +5,8 @@ export function parseAdminDiscordUserIdsFromEnv(): string[] {
   if (rawList === undefined) {
     return [];
   }
-  return rawList.split(",").map((id) => id.trim()).filter((id) => id.length > 0);
+  return rawList
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
 }
