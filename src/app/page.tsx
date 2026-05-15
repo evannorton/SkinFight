@@ -30,7 +30,7 @@ export default async function Home(): Promise<ReactElement> {
         eventStartsAtIso={eventStartsAtIso}
       />
       <Heading as="h2" size="5" weight="bold" mb="3" mt="6">
-        What is Skin Fight?
+        Welcome to SkinFight
       </Heading>
 
       <Text as="p" size="3" color="gray">
