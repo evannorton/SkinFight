@@ -16,6 +16,7 @@ import {
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
+import { EventTeamsEditor } from "~/app/dashboard/event-teams-editor";
 import { formatDateToDatetimeLocalValue } from "~/lib/format-date-to-datetime-local-value";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -48,9 +49,21 @@ function EventAdminCard(props: EventAdminCardProps): ReactElement {
         >
           {displayTitle}
         </Heading>
-        <Text size="2" color="gray" mb="4" style={{ display: "block" }}>
+        <Text size="2" color="gray" mb="3" style={{ display: "block" }}>
           {formattedDateTime}
         </Text>
+        {eventRow.eventTeams.length > 0 && (
+          <Text as="p" size="2" color="gray" mb="4" style={{ display: "block" }}>
+            {eventRow.eventTeams
+              .map((eventTeamRow) => eventTeamRow.team.name)
+              .join(", ")}
+          </Text>
+        )}
+        {eventRow.eventTeams.length === 0 && (
+          <Text as="p" size="2" color="gray" mb="4" style={{ display: "block" }}>
+            No teams
+          </Text>
+        )}
         <Flex gap="2" wrap="wrap">
           <Button
             type="button"
@@ -87,11 +100,13 @@ export function AdminEventsSection(): ReactElement {
   const [editEventName, setEditEventName] = useState<string>("");
   const [editDateTimeLocalInput, setEditDateTimeLocalInput] =
     useState<string>("");
+  const [editEventTeamIds, setEditEventTeamIds] = useState<string[]>([]);
   const [pendingDeleteEvent, setPendingDeleteEvent] =
     useState<EventListRow | null>(null);
 
   const utils = api.useUtils();
   const listEventsQuery = api.event.list.useQuery();
+  const listTeamsQuery = api.team.list.useQuery();
 
   const createEventMutation = api.event.create.useMutation({
     onSuccess: async () => {
@@ -123,6 +138,9 @@ export function AdminEventsSection(): ReactElement {
     setEditDateTimeLocalInput(
       formatDateToDatetimeLocalValue(new Date(eventBeingEdited.date)),
     );
+    setEditEventTeamIds(
+      eventBeingEdited.eventTeams.map((eventTeamRow) => eventTeamRow.teamId),
+    );
   }, [eventBeingEdited]);
 
   const trimmedNewEventName = newEventName.trim();
@@ -132,11 +150,12 @@ export function AdminEventsSection(): ReactElement {
     createEventMutation.isPending === true;
 
   const trimmedEditEventName = editEventName.trim();
+  const isEventEditFormDisabled = updateEventMutation.isPending === true;
   const isSaveEditDisabled =
     eventBeingEdited === null ||
     trimmedEditEventName.length === 0 ||
     editDateTimeLocalInput.length === 0 ||
-    updateEventMutation.isPending === true;
+    isEventEditFormDisabled === true;
 
   return (
     <Box mt="6">
@@ -144,9 +163,6 @@ export function AdminEventsSection(): ReactElement {
       <Heading as="h3" size="5" weight="bold" mb="3">
         Events
       </Heading>
-      <Text as="p" size="2" color="gray" mb="4">
-        Create an event with a name and a date and time (hours and minutes).
-      </Text>
 
       <Flex direction="column" gap="3" mb="6" style={{ maxWidth: "28rem" }}>
         <Text as="label" size="2" weight="medium" htmlFor="event-name">
@@ -240,12 +256,15 @@ export function AdminEventsSection(): ReactElement {
       <Dialog.Root
         open={eventBeingEdited !== null}
         onOpenChange={(open) => {
+          if (open === false && isEventEditFormDisabled === true) {
+            return;
+          }
           if (open === false) {
             setEventBeingEdited(null);
           }
         }}
       >
-        <Dialog.Content style={{ maxWidth: "min(28rem, 100vw - 2rem)" }}>
+        <Dialog.Content style={{ maxWidth: "min(32rem, 100vw - 2rem)" }}>
           <Dialog.Title>Edit event</Dialog.Title>
           <Flex direction="column" gap="3" mt="3">
             <Text as="label" size="2" weight="medium" htmlFor="edit-event-name">
@@ -253,6 +272,7 @@ export function AdminEventsSection(): ReactElement {
             </Text>
             <TextField.Root
               id="edit-event-name"
+              disabled={isEventEditFormDisabled === true}
               value={editEventName}
               onChange={(event) => {
                 setEditEventName(event.target.value);
@@ -271,11 +291,20 @@ export function AdminEventsSection(): ReactElement {
               id="edit-event-datetime"
               type="datetime-local"
               step={60}
+              disabled={isEventEditFormDisabled === true}
               value={editDateTimeLocalInput}
               onChange={(event) => {
                 setEditDateTimeLocalInput(event.target.value);
               }}
             />
+            {eventBeingEdited !== null && (
+              <EventTeamsEditor
+                draftTeamIds={editEventTeamIds}
+                allTeams={listTeamsQuery.data ?? []}
+                onDraftTeamIdsChange={setEditEventTeamIds}
+                areInputsDisabled={isEventEditFormDisabled === true}
+              />
+            )}
             {updateEventMutation.error !== null && (
               <Text size="2" color="red">
                 {updateEventMutation.error.message}
@@ -283,13 +312,17 @@ export function AdminEventsSection(): ReactElement {
             )}
             <Flex gap="2" justify="end" mt="2">
               <Dialog.Close>
-                <Button type="button" variant="soft">
+                <Button
+                  type="button"
+                  variant="soft"
+                  disabled={isEventEditFormDisabled === true}
+                >
                   Cancel
                 </Button>
               </Dialog.Close>
               <Button
                 type="button"
-                disabled={isSaveEditDisabled}
+                disabled={isSaveEditDisabled === true}
                 onClick={() => {
                   if (eventBeingEdited === null) {
                     return;
@@ -308,6 +341,7 @@ export function AdminEventsSection(): ReactElement {
                     id: eventBeingEdited.id,
                     name: trimmedEditEventName,
                     date: parsedEditDate,
+                    teamIds: editEventTeamIds,
                   });
                 }}
               >

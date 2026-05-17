@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 
 import { UserRole } from "../../../generated/prisma";
 import { AdminEventsSection } from "~/app/dashboard/admin-events-section";
+import { AdminTeamsSection } from "~/app/dashboard/admin-teams-section";
 import { auth } from "~/server/auth";
 
 export default async function AdminDashboardPage(): Promise<ReactElement> {
@@ -25,6 +26,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
         {session.user.name ?? session.user.email ?? session.user.id} (admin).
       </Text>
       <AdminEventsSection />
+      <AdminTeamsSection />
     </Box>
   );
 }

@@ -73,11 +73,35 @@ model User {
 }
 
 model Event {
+    id         String      @id @default(cuid())
+    name       String      @default("")
+    date       DateTime
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    eventTeams EventTeam[]
+}
+
+model Team {
+    id         String      @id @default(cuid())
+    name       String
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    eventTeams EventTeam[]
+}
+
+model EventTeam {
     id        String   @id @default(cuid())
-    name      String   @default("")
-    date      DateTime
+    eventId   String
+    teamId    String
+    sortOrder Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+    @@unique([eventId, teamId])
+    @@index([eventId])
 }
 
 model VerificationToken {
