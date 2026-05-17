@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
-import { authorizeUserCharacterEventParticipation } from "~/server/character-event-authorization";
+import { findCharacterAuthorizedForUserCurrentTeam } from "~/server/character-authorization";
 import {
   parseCharacterNameFieldValue,
   parseOptionalCharacterPngFileFieldValue,
 } from "~/server/character-form-parsing";
+import { deleteBackblazeFilesForCharacterPublicFileUrls } from "~/server/character-backblaze-cleanup";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import {
   deleteCharacterPngFromBackblazeByPublicFileUrl,
@@ -61,33 +62,18 @@ export async function PATCH(
   }
 
   const userId = session.user.id;
-  const existingCharacter = await db.character.findFirst({
-    where: {
-      id: characterId,
+  const authorizedCharacterResult =
+    await findCharacterAuthorizedForUserCurrentTeam({
+      characterId,
       userId,
-    },
-  });
-  if (existingCharacter === null) {
-    return NextResponse.json({ error: "Character not found." }, { status: 404 });
-  }
-
-  const eventAuthorizationResult = await authorizeUserCharacterEventParticipation({
-    userId,
-    eventId: existingCharacter.eventId,
-  });
-  if (eventAuthorizationResult.isAuthorized === false) {
+    });
+  if (authorizedCharacterResult.isAuthorized === false) {
     return NextResponse.json(
-      { error: eventAuthorizationResult.errorMessage },
-      { status: eventAuthorizationResult.httpStatus },
+      { error: authorizedCharacterResult.errorMessage },
+      { status: authorizedCharacterResult.httpStatus },
     );
   }
-
-  if (
-    existingCharacter.teamId !==
-    eventAuthorizationResult.participation.teamId
-  ) {
-    return NextResponse.json({ error: "Character not found." }, { status: 404 });
-  }
+  const existingCharacter = authorizedCharacterResult.character;
 
   const isCharacterNameUnchanged =
     parsedCharacterName.trimmedCharacterName === existingCharacter.name;
@@ -174,4 +160,51 @@ export async function PATCH(
   }
 
   return NextResponse.json({ character: updatedCharacter }, { status: 200 });
+}
+
+export async function DELETE(
+  _request: Request,
+  context: CharacterRouteContext,
+): Promise<Response> {
+  const session = await auth();
+  if (session === null) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { characterId } = await context.params;
+  if (characterId.length === 0) {
+    return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
+  }
+
+  const userId = session.user.id;
+  const authorizedCharacterResult =
+    await findCharacterAuthorizedForUserCurrentTeam({
+      characterId,
+      userId,
+    });
+  if (authorizedCharacterResult.isAuthorized === false) {
+    return NextResponse.json(
+      { error: authorizedCharacterResult.errorMessage },
+      { status: authorizedCharacterResult.httpStatus },
+    );
+  }
+
+  const existingCharacter = authorizedCharacterResult.character;
+
+  await deleteBackblazeFilesForCharacterPublicFileUrls([
+    existingCharacter.file,
+  ]);
+
+  try {
+    await db.character.delete({
+      where: { id: existingCharacter.id },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to delete character." },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ success: true }, { status: 200 });
 }

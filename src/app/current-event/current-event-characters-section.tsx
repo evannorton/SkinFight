@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertDialog,
   Box,
   Button,
   Flex,
@@ -40,6 +41,14 @@ export function CurrentEventCharactersSection(
   const [viewingCharacterId, setViewingCharacterId] = useState<string | null>(
     null,
   );
+  const [pendingDeleteCharacter, setPendingDeleteCharacter] =
+    useState<CurrentEventCharacterForDisplay | null>(null);
+  const [deletingCharacterId, setDeletingCharacterId] = useState<string | null>(
+    null,
+  );
+  const [deleteCharacterErrorMessage, setDeleteCharacterErrorMessage] = useState<
+    string | null
+  >(null);
 
   const trimmedNewCharacterName = newCharacterName.trim();
   const isCreateCharacterDisabled =
@@ -63,6 +72,45 @@ export function CurrentEventCharactersSection(
     const selectedFile = event.target.files?.[0] ?? null;
     setSelectedPngFile(selectedFile);
     setCreateCharacterErrorMessage(null);
+  };
+
+  const handleDeleteCharacterConfirm = async (): Promise<void> => {
+    if (pendingDeleteCharacter === null) {
+      return;
+    }
+
+    setDeletingCharacterId(pendingDeleteCharacter.id);
+    setDeleteCharacterErrorMessage(null);
+
+    try {
+      const deleteCharacterResponse = await fetch(
+        `/api/characters/${pendingDeleteCharacter.id}`,
+        { method: "DELETE" },
+      );
+
+      if (deleteCharacterResponse.ok === false) {
+        const errorMessage = await parseJsonApiErrorMessage(
+          deleteCharacterResponse,
+          "Failed to delete character.",
+        );
+        setDeleteCharacterErrorMessage(errorMessage);
+        setDeletingCharacterId(null);
+        return;
+      }
+
+      if (editingCharacterId === pendingDeleteCharacter.id) {
+        setEditingCharacterId(null);
+      }
+      if (viewingCharacterId === pendingDeleteCharacter.id) {
+        setViewingCharacterId(null);
+      }
+      setPendingDeleteCharacter(null);
+      setDeletingCharacterId(null);
+      router.refresh();
+    } catch {
+      setDeleteCharacterErrorMessage("Failed to delete character.");
+      setDeletingCharacterId(null);
+    }
   };
 
   const handleCreateCharacterFormSubmit = async (
@@ -182,6 +230,18 @@ export function CurrentEventCharactersSection(
                   >
                     Edit
                   </Button>
+                  <Button
+                    type="button"
+                    variant="soft"
+                    color="red"
+                    disabled={deletingCharacterId !== null}
+                    onClick={() => {
+                      setDeleteCharacterErrorMessage(null);
+                      setPendingDeleteCharacter(characterRow);
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </Flex>
               </Flex>
             );
@@ -218,6 +278,54 @@ export function CurrentEventCharactersSection(
           No characters yet. Add your first character below.
         </Text>
       )}
+
+      <AlertDialog.Root
+        open={pendingDeleteCharacter !== null}
+        onOpenChange={(isAlertDialogOpen) => {
+          if (isAlertDialogOpen === false) {
+            setPendingDeleteCharacter(null);
+            setDeleteCharacterErrorMessage(null);
+          }
+        }}
+      >
+        <AlertDialog.Content style={{ maxWidth: "min(24rem, 100vw - 2rem)" }}>
+          <AlertDialog.Title>Delete character?</AlertDialog.Title>
+          <AlertDialog.Description size="2" mt="2">
+            {pendingDeleteCharacter !== null
+              ? `This will permanently remove "${pendingDeleteCharacter.name}".`
+              : "This will permanently remove this character."}
+          </AlertDialog.Description>
+          {deleteCharacterErrorMessage !== null && (
+            <Text size="2" color="red" mt="2">
+              {deleteCharacterErrorMessage}
+            </Text>
+          )}
+          <Flex gap="2" justify="end" mt="4">
+            <AlertDialog.Cancel>
+              <Button
+                type="button"
+                variant="soft"
+                disabled={deletingCharacterId !== null}
+              >
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+            <Button
+              type="button"
+              color="red"
+              disabled={
+                pendingDeleteCharacter === null ||
+                deletingCharacterId !== null
+              }
+              onClick={() => {
+                void handleDeleteCharacterConfirm();
+              }}
+            >
+              {deletingCharacterId !== null ? "Deleting…" : "Delete"}
+            </Button>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
 
       <Box asChild style={{ maxWidth: "28rem" }}>
         <form onSubmit={handleCreateCharacterFormSubmit}>

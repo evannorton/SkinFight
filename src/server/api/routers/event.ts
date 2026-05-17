@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, adminProcedure } from "~/server/api/trpc";
+import { deleteBackblazeFilesForCharactersWhere } from "~/server/character-backblaze-cleanup";
 
 const eventNameSchema = z.string().min(1, "Name is required.").max(200);
 
@@ -158,6 +159,9 @@ export const eventRouter = createTRPCRouter({
           message: "Event not found.",
         });
       }
+      await deleteBackblazeFilesForCharactersWhere(ctx.db, {
+        eventId: input.id,
+      });
       await ctx.db.event.delete({
         where: { id: input.id },
       });
