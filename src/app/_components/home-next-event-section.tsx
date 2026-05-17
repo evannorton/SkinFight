@@ -1,6 +1,7 @@
 "use client";
 
-import { Heading, Text } from "@radix-ui/themes";
+import { Heading, Link, Text } from "@radix-ui/themes";
+import NextLink from "next/link";
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ type HomeNextEventSectionProps = {
   eventStartsAtIso: string;
   eventEndsAtIso: string;
   eventDateTimeRangeLabel: string;
+  shouldShowLinkToCurrentEventPage: boolean;
 };
 
 function formatRemainingMilliseconds(
@@ -49,6 +51,7 @@ export function HomeNextEventSection(
     eventStartsAtIso,
     eventEndsAtIso,
     eventDateTimeRangeLabel,
+    shouldShowLinkToCurrentEventPage,
   } = props;
 
   let countdownTargetIso = eventStartsAtIso;
@@ -98,6 +101,12 @@ export function HomeNextEventSection(
           {countdownLabel}
         </Text>
       </Text>
+      {eventHighlightMode === "current" &&
+        shouldShowLinkToCurrentEventPage === true && (
+          <Link asChild size="3" weight="medium" underline="hover" mt="2">
+            <NextLink href="/current-event">View current event</NextLink>
+          </Link>
+        )}
     </>
   );
 }

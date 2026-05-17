@@ -2,76 +2,10 @@ import { Box, Heading, Text } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 
 import { HomeNextEventSection } from "~/app/_components/home-next-event-section";
-import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
-import { db } from "~/server/db";
-
-type HomeEventHighlightMode = "current" | "next";
-
-type FeaturedEventForHomePage = {
-  eventHighlightMode: HomeEventHighlightMode;
-  displayName: string;
-  startsAtIso: string;
-  endsAtIso: string;
-  dateTimeRangeLabel: string;
-};
-
-function buildFeaturedEventForHomePage(
-  eventRow: { name: string; date: Date; endDate: Date },
-  eventHighlightMode: HomeEventHighlightMode,
-): FeaturedEventForHomePage {
-  let displayName = "Untitled";
-  if (eventRow.name.trim().length > 0) {
-    displayName = eventRow.name.trim();
-  }
-  return {
-    eventHighlightMode,
-    displayName,
-    startsAtIso: eventRow.date.toISOString(),
-    endsAtIso: eventRow.endDate.toISOString(),
-    dateTimeRangeLabel: formatEventDateTimeRangeLabel(
-      eventRow.date,
-      eventRow.endDate,
-    ),
-  };
-}
+import { getFeaturedEventForHomePage } from "~/server/event-for-display";
 
 export default async function Home(): Promise<ReactElement> {
-  const now = new Date();
-  const eventSelectFields = {
-    name: true,
-    date: true,
-    endDate: true,
-  } as const;
-
-  const currentOngoingEvent = await db.event.findFirst({
-    where: {
-      date: { lte: now },
-      endDate: { gte: now },
-    },
-    orderBy: { date: "asc" },
-    select: eventSelectFields,
-  });
-
-  let featuredEvent: FeaturedEventForHomePage | null = null;
-  if (currentOngoingEvent !== null) {
-    featuredEvent = buildFeaturedEventForHomePage(
-      currentOngoingEvent,
-      "current",
-    );
-  } else {
-    const nextUpcomingEvent = await db.event.findFirst({
-      where: { date: { gt: now } },
-      orderBy: { date: "asc" },
-      select: eventSelectFields,
-    });
-    if (nextUpcomingEvent !== null) {
-      featuredEvent = buildFeaturedEventForHomePage(
-        nextUpcomingEvent,
-        "next",
-      );
-    }
-  }
-
+  const featuredEvent = await getFeaturedEventForHomePage();
   const hasFeaturedEventSection = featuredEvent !== null;
 
   return (
@@ -83,6 +17,9 @@ export default async function Home(): Promise<ReactElement> {
           eventStartsAtIso={featuredEvent.startsAtIso}
           eventEndsAtIso={featuredEvent.endsAtIso}
           eventDateTimeRangeLabel={featuredEvent.dateTimeRangeLabel}
+          shouldShowLinkToCurrentEventPage={
+            featuredEvent.eventHighlightMode === "current"
+          }
         />
       )}
       <Heading

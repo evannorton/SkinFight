@@ -4,11 +4,14 @@ import type { ReactElement } from "react";
 
 import { UserRole } from "../../../generated/prisma";
 import { auth } from "~/server/auth";
+import { getCurrentOngoingEventForDisplay } from "~/server/event-for-display";
 
 export async function SiteHeader(): Promise<ReactElement> {
   const session = await auth();
+  const currentOngoingEvent = await getCurrentOngoingEventForDisplay();
   const isUserSignedIn = session !== null;
   const isSessionUserAdmin = session?.user.role === UserRole.ADMIN;
+  const hasCurrentOngoingEvent = currentOngoingEvent !== null;
 
   return (
     <header>
@@ -20,6 +23,11 @@ export async function SiteHeader(): Promise<ReactElement> {
         </Heading>
         <Flex align="center" gap="4" asChild>
           <nav>
+            {hasCurrentOngoingEvent === true && (
+              <Link asChild size="2" weight="medium" underline="hover">
+                <NextLink href="/current-event">Current event</NextLink>
+              </Link>
+            )}
             {isUserSignedIn === true && isSessionUserAdmin === true && (
               <Link asChild size="2" weight="medium" underline="hover">
                 <NextLink href="/dashboard">Dashboard</NextLink>
