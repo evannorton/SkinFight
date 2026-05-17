@@ -4,16 +4,22 @@ import { Heading, Text } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
+type HomeEventHighlightMode = "current" | "next";
+
 type HomeNextEventSectionProps = {
-  eventDisplayName: string | null;
-  eventStartsAtIso: string | null;
+  eventHighlightMode: HomeEventHighlightMode;
+  eventDisplayName: string;
+  eventStartsAtIso: string;
+  eventEndsAtIso: string;
+  eventDateTimeRangeLabel: string;
 };
 
-function formatRemainingMillisecondsUntilStart(
+function formatRemainingMilliseconds(
   totalMillisecondsRemaining: number,
+  completeLabel: string,
 ): string {
   if (totalMillisecondsRemaining <= 0) {
-    return "Starting now";
+    return completeLabel;
   }
   const totalSeconds = Math.floor(totalMillisecondsRemaining / 1000);
   const days = Math.floor(totalSeconds / 86400);
@@ -37,7 +43,25 @@ function formatRemainingMillisecondsUntilStart(
 export function HomeNextEventSection(
   props: HomeNextEventSectionProps,
 ): ReactElement {
-  const { eventDisplayName, eventStartsAtIso } = props;
+  const {
+    eventHighlightMode,
+    eventDisplayName,
+    eventStartsAtIso,
+    eventEndsAtIso,
+    eventDateTimeRangeLabel,
+  } = props;
+
+  let countdownTargetIso = eventStartsAtIso;
+  if (eventHighlightMode === "current") {
+    countdownTargetIso = eventEndsAtIso;
+  }
+  const sectionTitle =
+    eventHighlightMode === "current" ? "Current event" : "Next event";
+  const countdownPrefix =
+    eventHighlightMode === "current" ? "Ends in" : "Starts in";
+  const countdownCompleteLabel =
+    eventHighlightMode === "current" ? "Ending now" : "Starting now";
+
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(() => Date.now());
 
   useEffect(() => {
@@ -47,44 +71,29 @@ export function HomeNextEventSection(
     return () => {
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [countdownTargetIso]);
 
-  if (eventStartsAtIso === null) {
-    return (
-      <>
-        <Heading as="h2" size="5" weight="bold" mb="3">
-          Next event
-        </Heading>
-        <Text as="p" size="3" color="gray">
-          No upcoming events scheduled.
-        </Text>
-      </>
-    );
-  }
-
-  const eventStartInstant = new Date(eventStartsAtIso);
-  const millisecondsUntilStart = eventStartInstant.getTime() - currentTimeMs;
-  const countdownLabel = formatRemainingMillisecondsUntilStart(
-    millisecondsUntilStart,
+  const countdownTargetInstant = new Date(countdownTargetIso);
+  const millisecondsUntilCountdownTarget =
+    countdownTargetInstant.getTime() - currentTimeMs;
+  const countdownLabel = formatRemainingMilliseconds(
+    millisecondsUntilCountdownTarget,
+    countdownCompleteLabel,
   );
-  const startsAtLabel = eventStartInstant.toLocaleString(undefined, {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
 
   return (
     <>
       <Heading as="h2" size="5" weight="bold" mb="3">
-        Next event
+        {sectionTitle}
       </Heading>
       <Text as="p" size="4" weight="medium">
-        {eventDisplayName ?? "Untitled"}
+        {eventDisplayName}
       </Text>
       <Text as="p" size="2" color="gray">
-        {startsAtLabel}
+        {eventDateTimeRangeLabel}
       </Text>
       <Text as="p" size="3" mb="1" mt="1">
-        Starts in{" "}
+        {countdownPrefix}{" "}
         <Text as="span" weight="bold" size="3">
           {countdownLabel}
         </Text>

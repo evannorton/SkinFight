@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import { EventTeamsEditor } from "~/app/dashboard/event-teams-editor";
 import { formatDateToDatetimeLocalValue } from "~/lib/format-date-to-datetime-local-value";
+import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type EventListRow = RouterOutputs["event"]["list"][number];
@@ -30,10 +31,10 @@ type EventAdminCardProps = {
 
 function EventAdminCard(props: EventAdminCardProps): ReactElement {
   const { eventRow, onEditRequested, onDeleteRequested } = props;
-  const formattedDateTime = new Date(eventRow.date).toLocaleString(undefined, {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
+  const formattedDateTime = formatEventDateTimeRangeLabel(
+    new Date(eventRow.date),
+    new Date(eventRow.endDate),
+  );
   const displayTitle =
     eventRow.name.trim().length > 0 ? eventRow.name : "Untitled";
 
@@ -92,13 +93,17 @@ function EventAdminCard(props: EventAdminCardProps): ReactElement {
 
 export function AdminEventsSection(): ReactElement {
   const [newEventName, setNewEventName] = useState<string>("");
-  const [selectedDateTimeLocalInput, setSelectedDateTimeLocalInput] =
+  const [selectedStartDateTimeLocalInput, setSelectedStartDateTimeLocalInput] =
+    useState<string>("");
+  const [selectedEndDateTimeLocalInput, setSelectedEndDateTimeLocalInput] =
     useState<string>("");
   const [eventBeingEdited, setEventBeingEdited] = useState<EventListRow | null>(
     null,
   );
   const [editEventName, setEditEventName] = useState<string>("");
-  const [editDateTimeLocalInput, setEditDateTimeLocalInput] =
+  const [editStartDateTimeLocalInput, setEditStartDateTimeLocalInput] =
+    useState<string>("");
+  const [editEndDateTimeLocalInput, setEditEndDateTimeLocalInput] =
     useState<string>("");
   const [editEventTeamIds, setEditEventTeamIds] = useState<string[]>([]);
   const [pendingDeleteEvent, setPendingDeleteEvent] =
@@ -112,7 +117,8 @@ export function AdminEventsSection(): ReactElement {
     onSuccess: async () => {
       await utils.event.list.invalidate();
       setNewEventName("");
-      setSelectedDateTimeLocalInput("");
+      setSelectedStartDateTimeLocalInput("");
+      setSelectedEndDateTimeLocalInput("");
     },
   });
 
@@ -135,8 +141,11 @@ export function AdminEventsSection(): ReactElement {
       return;
     }
     setEditEventName(eventBeingEdited.name);
-    setEditDateTimeLocalInput(
+    setEditStartDateTimeLocalInput(
       formatDateToDatetimeLocalValue(new Date(eventBeingEdited.date)),
+    );
+    setEditEndDateTimeLocalInput(
+      formatDateToDatetimeLocalValue(new Date(eventBeingEdited.endDate)),
     );
     setEditEventTeamIds(
       eventBeingEdited.eventTeams.map((eventTeamRow) => eventTeamRow.teamId),
@@ -146,7 +155,8 @@ export function AdminEventsSection(): ReactElement {
   const trimmedNewEventName = newEventName.trim();
   const isCreateDisabled =
     trimmedNewEventName.length === 0 ||
-    selectedDateTimeLocalInput.length === 0 ||
+    selectedStartDateTimeLocalInput.length === 0 ||
+    selectedEndDateTimeLocalInput.length === 0 ||
     createEventMutation.isPending === true;
 
   const trimmedEditEventName = editEventName.trim();
@@ -154,7 +164,8 @@ export function AdminEventsSection(): ReactElement {
   const isSaveEditDisabled =
     eventBeingEdited === null ||
     trimmedEditEventName.length === 0 ||
-    editDateTimeLocalInput.length === 0 ||
+    editStartDateTimeLocalInput.length === 0 ||
+    editEndDateTimeLocalInput.length === 0 ||
     isEventEditFormDisabled === true;
 
   return (
@@ -176,17 +187,30 @@ export function AdminEventsSection(): ReactElement {
             setNewEventName(event.target.value);
           }}
         />
-        <Text as="label" size="2" weight="medium" htmlFor="event-datetime">
-          Event date and time
+        <Text as="label" size="2" weight="medium" htmlFor="event-start-datetime">
+          Start date and time
         </Text>
         <TextField.Root
           className="skinfight-event-datetime-text-field"
-          id="event-datetime"
+          id="event-start-datetime"
           type="datetime-local"
           step={60}
-          value={selectedDateTimeLocalInput}
+          value={selectedStartDateTimeLocalInput}
           onChange={(event) => {
-            setSelectedDateTimeLocalInput(event.target.value);
+            setSelectedStartDateTimeLocalInput(event.target.value);
+          }}
+        />
+        <Text as="label" size="2" weight="medium" htmlFor="event-end-datetime">
+          End date and time
+        </Text>
+        <TextField.Root
+          className="skinfight-event-datetime-text-field"
+          id="event-end-datetime"
+          type="datetime-local"
+          step={60}
+          value={selectedEndDateTimeLocalInput}
+          onChange={(event) => {
+            setSelectedEndDateTimeLocalInput(event.target.value);
           }}
         />
         <Button
@@ -196,16 +220,27 @@ export function AdminEventsSection(): ReactElement {
             if (trimmedNewEventName.length === 0) {
               return;
             }
-            if (selectedDateTimeLocalInput.length === 0) {
+            if (selectedStartDateTimeLocalInput.length === 0) {
               return;
             }
-            const parsedEventDate = new Date(selectedDateTimeLocalInput);
-            if (Number.isNaN(parsedEventDate.getTime()) === true) {
+            if (selectedEndDateTimeLocalInput.length === 0) {
+              return;
+            }
+            const parsedStartDate = new Date(selectedStartDateTimeLocalInput);
+            const parsedEndDate = new Date(selectedEndDateTimeLocalInput);
+            if (Number.isNaN(parsedStartDate.getTime()) === true) {
+              return;
+            }
+            if (Number.isNaN(parsedEndDate.getTime()) === true) {
+              return;
+            }
+            if (parsedEndDate.getTime() <= parsedStartDate.getTime()) {
               return;
             }
             createEventMutation.mutate({
               name: trimmedNewEventName,
-              date: parsedEventDate,
+              date: parsedStartDate,
+              endDate: parsedEndDate,
             });
           }}
         >
@@ -282,19 +317,38 @@ export function AdminEventsSection(): ReactElement {
               as="label"
               size="2"
               weight="medium"
-              htmlFor="edit-event-datetime"
+              htmlFor="edit-event-start-datetime"
             >
-              Event date and time
+              Start date and time
             </Text>
             <TextField.Root
               className="skinfight-event-datetime-text-field"
-              id="edit-event-datetime"
+              id="edit-event-start-datetime"
               type="datetime-local"
               step={60}
               disabled={isEventEditFormDisabled === true}
-              value={editDateTimeLocalInput}
+              value={editStartDateTimeLocalInput}
               onChange={(event) => {
-                setEditDateTimeLocalInput(event.target.value);
+                setEditStartDateTimeLocalInput(event.target.value);
+              }}
+            />
+            <Text
+              as="label"
+              size="2"
+              weight="medium"
+              htmlFor="edit-event-end-datetime"
+            >
+              End date and time
+            </Text>
+            <TextField.Root
+              className="skinfight-event-datetime-text-field"
+              id="edit-event-end-datetime"
+              type="datetime-local"
+              step={60}
+              disabled={isEventEditFormDisabled === true}
+              value={editEndDateTimeLocalInput}
+              onChange={(event) => {
+                setEditEndDateTimeLocalInput(event.target.value);
               }}
             />
             {eventBeingEdited !== null && (
@@ -330,17 +384,32 @@ export function AdminEventsSection(): ReactElement {
                   if (trimmedEditEventName.length === 0) {
                     return;
                   }
-                  if (editDateTimeLocalInput.length === 0) {
+                  if (editStartDateTimeLocalInput.length === 0) {
                     return;
                   }
-                  const parsedEditDate = new Date(editDateTimeLocalInput);
-                  if (Number.isNaN(parsedEditDate.getTime()) === true) {
+                  if (editEndDateTimeLocalInput.length === 0) {
+                    return;
+                  }
+                  const parsedEditStartDate = new Date(
+                    editStartDateTimeLocalInput,
+                  );
+                  const parsedEditEndDate = new Date(editEndDateTimeLocalInput);
+                  if (Number.isNaN(parsedEditStartDate.getTime()) === true) {
+                    return;
+                  }
+                  if (Number.isNaN(parsedEditEndDate.getTime()) === true) {
+                    return;
+                  }
+                  if (
+                    parsedEditEndDate.getTime() <= parsedEditStartDate.getTime()
+                  ) {
                     return;
                   }
                   updateEventMutation.mutate({
                     id: eventBeingEdited.id,
                     name: trimmedEditEventName,
-                    date: parsedEditDate,
+                    date: parsedEditStartDate,
+                    endDate: parsedEditEndDate,
                     teamIds: editEventTeamIds,
                   });
                 }}

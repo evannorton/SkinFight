@@ -11,6 +11,35 @@ const eventTeamIdsSchema = z
     message: "Duplicate teams are not allowed.",
   });
 
+const eventDateTimeRangeSchema = z
+  .object({
+    date: z.coerce.date(),
+    endDate: z.coerce.date(),
+  })
+  .superRefine((value, context) => {
+    if (Number.isNaN(value.date.getTime()) === true) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid start date and time.",
+        path: ["date"],
+      });
+    }
+    if (Number.isNaN(value.endDate.getTime()) === true) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid end date and time.",
+        path: ["endDate"],
+      });
+    }
+    if (value.endDate.getTime() <= value.date.getTime()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End time must be after start time.",
+        path: ["endDate"],
+      });
+    }
+  });
+
 const eventListInclude = {
   eventTeams: {
     orderBy: { sortOrder: "asc" as const },
@@ -28,23 +57,18 @@ export const eventRouter = createTRPCRouter({
 
   create: adminProcedure
     .input(
-      z.object({
-        name: eventNameSchema,
-        date: z.coerce.date(),
-      }),
+      z
+        .object({
+          name: eventNameSchema,
+        })
+        .and(eventDateTimeRangeSchema),
     )
     .mutation(async ({ ctx, input }) => {
-      const eventDate = input.date;
-      if (Number.isNaN(eventDate.getTime()) === true) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid date and time.",
-        });
-      }
       return ctx.db.event.create({
         data: {
           name: input.name,
-          date: eventDate,
+          date: input.date,
+          endDate: input.endDate,
         },
         include: eventListInclude,
       });
@@ -52,21 +76,15 @@ export const eventRouter = createTRPCRouter({
 
   update: adminProcedure
     .input(
-      z.object({
-        id: z.string().min(1),
-        name: eventNameSchema,
-        date: z.coerce.date(),
-        teamIds: eventTeamIdsSchema,
-      }),
+      z
+        .object({
+          id: z.string().min(1),
+          name: eventNameSchema,
+          teamIds: eventTeamIdsSchema,
+        })
+        .and(eventDateTimeRangeSchema),
     )
     .mutation(async ({ ctx, input }) => {
-      const eventDate = input.date;
-      if (Number.isNaN(eventDate.getTime()) === true) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid date and time.",
-        });
-      }
       const existingEvent = await ctx.db.event.findUnique({
         where: { id: input.id },
       });
@@ -116,7 +134,8 @@ export const eventRouter = createTRPCRouter({
           where: { id: input.id },
           data: {
             name: input.name,
-            date: eventDate,
+            date: input.date,
+            endDate: input.endDate,
           },
           include: eventListInclude,
         });
