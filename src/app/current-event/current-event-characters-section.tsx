@@ -6,9 +6,11 @@ import {
   Button,
   Flex,
   Heading,
+  Link,
   Text,
   TextField,
 } from "@radix-ui/themes";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useRef, useState } from "react";
@@ -16,7 +18,7 @@ import { useRef, useState } from "react";
 import { CurrentEventCharacterEditDialog } from "~/app/current-event/current-event-character-edit-dialog";
 import { CurrentEventCharacterViewDialog } from "~/app/current-event/current-event-character-view-dialog";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
-import type { CurrentEventCharacterForDisplay } from "~/server/character-for-display";
+import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-display";
 
 type CurrentEventCharactersSectionProps = {
   eventId: string;
@@ -182,35 +184,44 @@ export function CurrentEventCharactersSection(
                   borderRadius: "var(--radius-3)",
                 }}
               >
-                <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-                  <Box
-                    style={{
-                      width: "64px",
-                      height: "64px",
-                      flexShrink: 0,
-                      overflow: "hidden",
-                      borderRadius: "var(--radius-2)",
-                      backgroundColor: "var(--gray-a3)",
-                    }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={characterRow.fileUrl}
-                      alt={characterRow.name}
-                      width={64}
-                      height={64}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                        display: "block",
-                      }}
-                    />
-                  </Box>
-                  <Text size="3" weight="medium">
-                    {characterRow.name}
-                  </Text>
-                </Flex>
+                <Link
+                  asChild
+                  underline="none"
+                  style={{ color: "inherit", flex: 1, minWidth: 0 }}
+                >
+                  <NextLink href={`/characters/${characterRow.id}`}>
+                    <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+                      <Box
+                        style={{
+                          width: "64px",
+                          height: "64px",
+                          flexShrink: 0,
+                          overflow: "hidden",
+                          borderRadius: "var(--radius-2)",
+                          backgroundColor: "var(--gray-a3)",
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className="skinfight-skin-png-image"
+                          src={characterRow.fileUrl}
+                          alt={characterRow.name}
+                          width={64}
+                          height={64}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            display: "block",
+                          }}
+                        />
+                      </Box>
+                      <Text size="3" weight="medium">
+                        {characterRow.name}
+                      </Text>
+                    </Flex>
+                  </NextLink>
+                </Link>
                 <Flex gap="2" style={{ flexShrink: 0 }}>
                   <Button
                     type="button"

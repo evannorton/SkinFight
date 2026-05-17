@@ -16,11 +16,18 @@ export async function SiteHeader(): Promise<ReactElement> {
   return (
     <header>
       <Flex align="center" justify="between" px="6" py="4" width="100%">
-        <Heading as="h1" size="5" weight="bold">
-          <Link asChild underline="hover" color="gray" highContrast>
-            <NextLink href="/">SkinFight</NextLink>
-          </Link>
-        </Heading>
+        <Flex align="center" gap="4" asChild>
+          <nav>
+            <Heading as="h1" size="5" weight="bold">
+              <Link asChild underline="hover" color="gray" highContrast>
+                <NextLink href="/">SkinFight</NextLink>
+              </Link>
+            </Heading>
+            <Link asChild size="2" weight="medium" underline="hover">
+              <NextLink href="/characters">Characters</NextLink>
+            </Link>
+          </nav>
+        </Flex>
         <Flex align="center" gap="4" asChild>
           <nav>
             {hasCurrentOngoingEvent === true && (

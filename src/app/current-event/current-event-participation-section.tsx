@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
 
-import type { CurrentEventTeamForParticipation } from "~/server/event-for-display";
+import type { CurrentEventTeamForParticipation } from "~/lib/event-for-display-types";
 import { api } from "~/trpc/react";
 
 type CurrentEventParticipationSectionProps = {

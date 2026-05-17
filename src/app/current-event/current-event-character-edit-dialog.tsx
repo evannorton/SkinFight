@@ -6,7 +6,7 @@ import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
-import type { CurrentEventCharacterForDisplay } from "~/server/character-for-display";
+import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-display";
 
 type CurrentEventCharacterEditDialogProps = {
   character: CurrentEventCharacterForDisplay;

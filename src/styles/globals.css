@@ -8,3 +8,7 @@
 .skinfight-event-datetime-text-field > input.rt-TextFieldInput {
   display: block !important;
 }
+
+.skinfight-skin-png-image {
+  image-rendering: pixelated;
+}

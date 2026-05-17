@@ -1,5 +1,19 @@
+import type {
+  CurrentEventTeamForParticipation,
+  CurrentOngoingEventWithTeams,
+  EventForHighlightDisplay,
+  FeaturedEventForHomePage,
+} from "~/lib/event-for-display-types";
 import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
 import { db } from "~/server/db";
+
+export type {
+  CurrentEventTeamForParticipation,
+  CurrentOngoingEventWithTeams,
+  EventForHighlightDisplay,
+  FeaturedEventForHomePage,
+  HomeEventHighlightMode,
+} from "~/lib/event-for-display-types";
 
 const eventSelectFields = {
   name: true,
@@ -11,19 +25,6 @@ type EventRowForDisplay = {
   name: string;
   date: Date;
   endDate: Date;
-};
-
-export type EventForHighlightDisplay = {
-  displayName: string;
-  startsAtIso: string;
-  endsAtIso: string;
-  dateTimeRangeLabel: string;
-};
-
-export type HomeEventHighlightMode = "current" | "next";
-
-export type FeaturedEventForHomePage = EventForHighlightDisplay & {
-  eventHighlightMode: HomeEventHighlightMode;
 };
 
 function buildEventForHighlightDisplay(
@@ -43,16 +44,6 @@ function buildEventForHighlightDisplay(
     ),
   };
 }
-
-export type CurrentEventTeamForParticipation = {
-  teamId: string;
-  teamName: string;
-};
-
-export type CurrentOngoingEventWithTeams = EventForHighlightDisplay & {
-  eventId: string;
-  teams: CurrentEventTeamForParticipation[];
-};
 
 export async function getCurrentOngoingEventForDisplay(): Promise<EventForHighlightDisplay | null> {
   const now = new Date();
