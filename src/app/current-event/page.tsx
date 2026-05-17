@@ -40,6 +40,7 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
         where: {
           userId: session.user.id,
           eventId: currentOngoingEventWithTeams.eventId,
+          teamId: userParticipationTeamId,
         },
         orderBy: { createdAt: "asc" },
         select: {

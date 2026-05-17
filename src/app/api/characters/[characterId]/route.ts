@@ -82,6 +82,13 @@ export async function PATCH(
     );
   }
 
+  if (
+    existingCharacter.teamId !==
+    eventAuthorizationResult.participation.teamId
+  ) {
+    return NextResponse.json({ error: "Character not found." }, { status: 404 });
+  }
+
   const isCharacterNameUnchanged =
     parsedCharacterName.trimmedCharacterName === existingCharacter.name;
   const isCharacterFileReplacementRequested =

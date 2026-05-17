@@ -5,6 +5,8 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  transpilePackages: ["skinview3d"],
+};
 
 export default config;

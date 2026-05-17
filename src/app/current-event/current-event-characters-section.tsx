@@ -13,6 +13,7 @@ import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useRef, useState } from "react";
 
 import { CurrentEventCharacterEditDialog } from "~/app/current-event/current-event-character-edit-dialog";
+import { CurrentEventCharacterViewDialog } from "~/app/current-event/current-event-character-view-dialog";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
 import type { CurrentEventCharacterForDisplay } from "~/server/character-for-display";
 
@@ -36,6 +37,9 @@ export function CurrentEventCharactersSection(
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(
     null,
   );
+  const [viewingCharacterId, setViewingCharacterId] = useState<string | null>(
+    null,
+  );
 
   const trimmedNewCharacterName = newCharacterName.trim();
   const isCreateCharacterDisabled =
@@ -46,6 +50,12 @@ export function CurrentEventCharactersSection(
   const editingCharacter =
     editingCharacterId !== null
       ? (characters.find((characterRow) => characterRow.id === editingCharacterId) ??
+        null)
+      : null;
+
+  const viewingCharacter =
+    viewingCharacterId !== null
+      ? (characters.find((characterRow) => characterRow.id === viewingCharacterId) ??
         null)
       : null;
 
@@ -106,7 +116,7 @@ export function CurrentEventCharactersSection(
   return (
     <Box mt="6">
       <Heading as="h2" size="5" weight="bold" mb="3">
-        Characters
+        Your characters
       </Heading>
 
       {characters.length > 0 && (
@@ -153,15 +163,26 @@ export function CurrentEventCharactersSection(
                     {characterRow.name}
                   </Text>
                 </Flex>
-                <Button
-                  type="button"
-                  variant="soft"
-                  onClick={() => {
-                    setEditingCharacterId(characterRow.id);
-                  }}
-                >
-                  Edit
-                </Button>
+                <Flex gap="2" style={{ flexShrink: 0 }}>
+                  <Button
+                    type="button"
+                    variant="soft"
+                    onClick={() => {
+                      setViewingCharacterId(characterRow.id);
+                    }}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="soft"
+                    onClick={() => {
+                      setEditingCharacterId(characterRow.id);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Flex>
               </Flex>
             );
           })}
@@ -175,6 +196,18 @@ export function CurrentEventCharactersSection(
           onOpenChange={(isDialogOpen) => {
             if (isDialogOpen === false) {
               setEditingCharacterId(null);
+            }
+          }}
+        />
+      )}
+
+      {viewingCharacter !== null && (
+        <CurrentEventCharacterViewDialog
+          character={viewingCharacter}
+          isOpen={viewingCharacterId !== null}
+          onOpenChange={(isDialogOpen) => {
+            if (isDialogOpen === false) {
+              setViewingCharacterId(null);
             }
           }}
         />
