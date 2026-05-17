@@ -71,6 +71,7 @@ model User {
     sessions            Session[]
     posts               Post[]
     eventParticipations EventParticipation[]
+    characters          Character[]
 }
 
 model Event {
@@ -82,6 +83,7 @@ model Event {
     updatedAt           DateTime             @updatedAt
     eventTeams          EventTeam[]
     eventParticipations EventParticipation[]
+    characters          Character[]
 }
 
 model Team {
@@ -91,6 +93,7 @@ model Team {
     updatedAt           DateTime             @updatedAt
     eventTeams          EventTeam[]
     eventParticipations EventParticipation[]
+    characters          Character[]
 }
 
 model EventTeam {
@@ -123,6 +126,25 @@ model EventParticipation {
     @@unique([userId, eventId])
     @@index([eventId])
     @@index([teamId])
+}
+
+model Character {
+    id        String   @id @default(cuid())
+    name      String
+    file      String
+    userId    String
+    teamId    String
+    eventId   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+    @@index([userId, eventId])
+    @@index([teamId])
+    @@index([eventId])
 }
 
 model VerificationToken {

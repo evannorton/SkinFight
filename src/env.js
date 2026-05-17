@@ -18,6 +18,34 @@ export const env = createEnv({
      * Comma-separated Discord user (snowflake) IDs promoted to ADMIN on sign-in.
      */
     ADMIN_DISCORD_USER_IDS: z.string().optional(),
+    B2_APPLICATION_KEY_ID:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
+    B2_APPLICATION_KEY:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
+    B2_BUCKET_NAME:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
+    B2_S3_ENDPOINT:
+      process.env.NODE_ENV === "production"
+        ? z.string().url()
+        : z.string().url().optional(),
+    B2_S3_REGION:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
+    /**
+     * Public URL prefix for uploaded files, without a trailing slash.
+     * Example: https://f004.backblazeb2.com/file/my-bucket
+     */
+    B2_PUBLIC_FILE_URL_PREFIX:
+      process.env.NODE_ENV === "production"
+        ? z.string().url()
+        : z.string().url().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -42,6 +70,12 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     ADMIN_DISCORD_USER_IDS: process.env.ADMIN_DISCORD_USER_IDS,
+    B2_APPLICATION_KEY_ID: process.env.B2_APPLICATION_KEY_ID,
+    B2_APPLICATION_KEY: process.env.B2_APPLICATION_KEY,
+    B2_BUCKET_NAME: process.env.B2_BUCKET_NAME,
+    B2_S3_ENDPOINT: process.env.B2_S3_ENDPOINT,
+    B2_S3_REGION: process.env.B2_S3_REGION,
+    B2_PUBLIC_FILE_URL_PREFIX: process.env.B2_PUBLIC_FILE_URL_PREFIX,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

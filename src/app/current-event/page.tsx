@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
 
 import { HomeNextEventSection } from "~/app/_components/home-next-event-section";
+import { CurrentEventCharactersSection } from "~/app/current-event/current-event-characters-section";
 import { CurrentEventParticipationSection } from "~/app/current-event/current-event-participation-section";
+import type { CurrentEventCharacterForDisplay } from "~/server/character-for-display";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { getCurrentOngoingEventWithTeams } from "~/server/event-for-display";
@@ -18,6 +20,7 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
   const isUserSignedIn = session !== null;
 
   let userParticipationTeamId: string | null = null;
+  let userCharactersForEvent: CurrentEventCharacterForDisplay[] = [];
   if (session !== null) {
     const existingParticipation = await db.eventParticipation.findUnique({
       where: {
@@ -30,6 +33,28 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
     });
     if (existingParticipation !== null) {
       userParticipationTeamId = existingParticipation.teamId;
+    }
+
+    if (userParticipationTeamId !== null) {
+      const characterRows = await db.character.findMany({
+        where: {
+          userId: session.user.id,
+          eventId: currentOngoingEventWithTeams.eventId,
+        },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          file: true,
+        },
+      });
+      userCharactersForEvent = characterRows.map((characterRow) => {
+        return {
+          id: characterRow.id,
+          name: characterRow.name,
+          fileUrl: characterRow.file,
+        };
+      });
     }
   }
 
@@ -49,6 +74,12 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
         teams={currentOngoingEventWithTeams.teams}
         userParticipationTeamId={userParticipationTeamId}
       />
+      {userParticipationTeamId !== null && (
+        <CurrentEventCharactersSection
+          eventId={currentOngoingEventWithTeams.eventId}
+          characters={userCharactersForEvent}
+        />
+      )}
     </Box>
   );
 }
