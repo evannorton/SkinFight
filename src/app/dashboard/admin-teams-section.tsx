@@ -108,8 +108,9 @@ export function AdminTeamsSection(): ReactElement {
   }, [teamBeingEdited]);
 
   const trimmedNewTeamName = newTeamName.trim();
+  const isTeamCreateFormDisabled = createTeamMutation.isPending === true;
   const isCreateDisabled =
-    trimmedNewTeamName.length === 0 || createTeamMutation.isPending === true;
+    trimmedNewTeamName.length === 0 || isTeamCreateFormDisabled === true;
 
   const trimmedEditTeamName = editTeamName.trim();
   const isTeamEditFormDisabled = updateTeamMutation.isPending === true;
@@ -131,6 +132,7 @@ export function AdminTeamsSection(): ReactElement {
         </Text>
         <TextField.Root
           id="team-name"
+          disabled={isTeamCreateFormDisabled === true}
           value={newTeamName}
           placeholder="Team name"
           onChange={(event) => {
@@ -139,7 +141,7 @@ export function AdminTeamsSection(): ReactElement {
         />
         <Button
           type="button"
-          disabled={isCreateDisabled}
+          disabled={isCreateDisabled === true}
           onClick={() => {
             if (trimmedNewTeamName.length === 0) {
               return;

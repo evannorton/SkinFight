@@ -153,11 +153,12 @@ export function AdminEventsSection(): ReactElement {
   }, [eventBeingEdited]);
 
   const trimmedNewEventName = newEventName.trim();
+  const isEventCreateFormDisabled = createEventMutation.isPending === true;
   const isCreateDisabled =
     trimmedNewEventName.length === 0 ||
     selectedStartDateTimeLocalInput.length === 0 ||
     selectedEndDateTimeLocalInput.length === 0 ||
-    createEventMutation.isPending === true;
+    isEventCreateFormDisabled === true;
 
   const trimmedEditEventName = editEventName.trim();
   const isEventEditFormDisabled = updateEventMutation.isPending === true;
@@ -181,6 +182,7 @@ export function AdminEventsSection(): ReactElement {
         </Text>
         <TextField.Root
           id="event-name"
+          disabled={isEventCreateFormDisabled === true}
           value={newEventName}
           placeholder="Event name"
           onChange={(event) => {
@@ -195,6 +197,7 @@ export function AdminEventsSection(): ReactElement {
           id="event-start-datetime"
           type="datetime-local"
           step={60}
+          disabled={isEventCreateFormDisabled === true}
           value={selectedStartDateTimeLocalInput}
           onChange={(event) => {
             setSelectedStartDateTimeLocalInput(event.target.value);
@@ -208,6 +211,7 @@ export function AdminEventsSection(): ReactElement {
           id="event-end-datetime"
           type="datetime-local"
           step={60}
+          disabled={isEventCreateFormDisabled === true}
           value={selectedEndDateTimeLocalInput}
           onChange={(event) => {
             setSelectedEndDateTimeLocalInput(event.target.value);
@@ -215,7 +219,7 @@ export function AdminEventsSection(): ReactElement {
         />
         <Button
           type="button"
-          disabled={isCreateDisabled}
+          disabled={isCreateDisabled === true}
           onClick={() => {
             if (trimmedNewEventName.length === 0) {
               return;
