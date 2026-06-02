@@ -2,7 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, adminProcedure } from "~/server/api/trpc";
-import { deleteBackblazeFilesForCharactersWhere } from "~/server/character-backblaze-cleanup";
+import {
+  deleteBackblazeFilesForAttacksWhere,
+  deleteBackblazeFilesForCharactersWhere,
+  deleteBackblazeFilesForDefendsWhere,
+} from "~/server/character-backblaze-cleanup";
 
 const teamNameSchema = z.string().min(1, "Name is required.").max(200);
 
@@ -69,6 +73,12 @@ export const teamRouter = createTRPCRouter({
         });
       }
       await deleteBackblazeFilesForCharactersWhere(ctx.db, {
+        teamId: input.id,
+      });
+      await deleteBackblazeFilesForAttacksWhere(ctx.db, {
+        teamId: input.id,
+      });
+      await deleteBackblazeFilesForDefendsWhere(ctx.db, {
         teamId: input.id,
       });
       await ctx.db.team.delete({

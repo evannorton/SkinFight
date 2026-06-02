@@ -7,10 +7,14 @@ import {
   parseCharacterNameFieldValue,
   parseOptionalCharacterPngFileFieldValue,
 } from "~/server/character-form-parsing";
-import { deleteBackblazeFilesForCharacterPublicFileUrls } from "~/server/character-backblaze-cleanup";
+import {
+  deleteBackblazeFilesForAttacksWhere,
+  deleteBackblazeFilesForDefendsWhere,
+  deleteBackblazeFilesForPublicFileUrls,
+} from "~/server/character-backblaze-cleanup";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import {
-  deleteCharacterPngFromBackblazeByPublicFileUrl,
+  deletePngFromBackblazeByPublicFileUrl,
   uploadCharacterPngToBackblaze,
 } from "~/server/backblaze-storage";
 import { auth } from "~/server/auth";
@@ -133,9 +137,7 @@ export async function PATCH(
   } catch {
     if (replacementPublicFileUrl !== null) {
       try {
-        await deleteCharacterPngFromBackblazeByPublicFileUrl(
-          replacementPublicFileUrl,
-        );
+        await deletePngFromBackblazeByPublicFileUrl(replacementPublicFileUrl);
       } catch {
         // best-effort cleanup of orphaned upload
       }
@@ -151,7 +153,7 @@ export async function PATCH(
     previousPublicFileUrl !== replacementPublicFileUrl
   ) {
     try {
-      await deleteCharacterPngFromBackblazeByPublicFileUrl(previousPublicFileUrl);
+      await deletePngFromBackblazeByPublicFileUrl(previousPublicFileUrl);
     } catch {
       console.error(
         `Failed to delete replaced character file from Backblaze: ${previousPublicFileUrl}`,
@@ -191,9 +193,9 @@ export async function DELETE(
 
   const existingCharacter = authorizedCharacterResult.character;
 
-  await deleteBackblazeFilesForCharacterPublicFileUrls([
-    existingCharacter.file,
-  ]);
+  await deleteBackblazeFilesForAttacksWhere(db, { characterId: existingCharacter.id });
+  await deleteBackblazeFilesForDefendsWhere(db, { characterId: existingCharacter.id });
+  await deleteBackblazeFilesForPublicFileUrls([existingCharacter.file]);
 
   try {
     await db.character.delete({

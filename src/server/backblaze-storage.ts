@@ -6,6 +6,10 @@ import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 
 let backblazeS3Client: S3Client | undefined;
 
+const CHARACTER_OBJECT_KEY_PREFIX = "characters/";
+const ATTACK_OBJECT_KEY_PREFIX = "attacks/";
+const DEFEND_OBJECT_KEY_PREFIX = "defends/";
+
 function getBackblazeS3Client(): S3Client {
   const backblazeEnvConfig = getBackblazeEnvConfig();
   if (backblazeEnvConfig === null) {
@@ -26,7 +30,7 @@ function getBackblazeS3Client(): S3Client {
   return backblazeS3Client;
 }
 
-export function buildCharacterPngPublicFileUrl(objectKey: string): string {
+export function buildPublicFileUrlFromObjectKey(objectKey: string): string {
   const backblazeEnvConfig = getBackblazeEnvConfig();
   if (backblazeEnvConfig === null) {
     throw new Error("Backblaze B2 is not configured.");
@@ -34,7 +38,7 @@ export function buildCharacterPngPublicFileUrl(objectKey: string): string {
   return `${backblazeEnvConfig.publicFileUrlPrefix}/${objectKey}`;
 }
 
-export async function uploadCharacterPngToBackblaze(params: {
+export async function uploadPngToBackblaze(params: {
   objectKey: string;
   fileBody: Buffer;
 }): Promise<string> {
@@ -52,10 +56,18 @@ export async function uploadCharacterPngToBackblaze(params: {
       ContentType: "image/png",
     }),
   );
-  return buildCharacterPngPublicFileUrl(params.objectKey);
+  return buildPublicFileUrlFromObjectKey(params.objectKey);
 }
 
-const CHARACTER_OBJECT_KEY_PREFIX = "characters/";
+export async function uploadCharacterPngToBackblaze(params: {
+  objectKey: string;
+  fileBody: Buffer;
+}): Promise<string> {
+  if (isManagedCharacterBackblazeObjectKey(params.objectKey) === false) {
+    throw new Error("Refusing to upload to a non-character object key.");
+  }
+  return uploadPngToBackblaze(params);
+}
 
 export function extractBackblazeObjectKeyFromPublicFileUrl(
   publicFileUrl: string,
@@ -81,12 +93,26 @@ export function isManagedCharacterBackblazeObjectKey(objectKey: string): boolean
   return objectKey.startsWith(CHARACTER_OBJECT_KEY_PREFIX);
 }
 
-export async function deleteCharacterPngFromBackblaze(
-  objectKey: string,
-): Promise<void> {
-  if (isManagedCharacterBackblazeObjectKey(objectKey) === false) {
-    throw new Error("Refusing to delete a non-character object key.");
+export function isManagedAttackBackblazeObjectKey(objectKey: string): boolean {
+  return objectKey.startsWith(ATTACK_OBJECT_KEY_PREFIX);
+}
+
+export function isManagedDefendBackblazeObjectKey(objectKey: string): boolean {
+  return objectKey.startsWith(DEFEND_OBJECT_KEY_PREFIX);
+}
+
+function assertManagedBackblazeObjectKeyCanBeDeleted(objectKey: string): void {
+  const isManagedObjectKey =
+    isManagedCharacterBackblazeObjectKey(objectKey) === true ||
+    isManagedAttackBackblazeObjectKey(objectKey) === true ||
+    isManagedDefendBackblazeObjectKey(objectKey) === true;
+  if (isManagedObjectKey === false) {
+    throw new Error("Refusing to delete an unmanaged object key.");
   }
+}
+
+export async function deletePngFromBackblaze(objectKey: string): Promise<void> {
+  assertManagedBackblazeObjectKeyCanBeDeleted(objectKey);
 
   const backblazeEnvConfig = getBackblazeEnvConfig();
   if (backblazeEnvConfig === null) {
@@ -102,12 +128,27 @@ export async function deleteCharacterPngFromBackblaze(
   );
 }
 
-export async function deleteCharacterPngFromBackblazeByPublicFileUrl(
+export async function deletePngFromBackblazeByPublicFileUrl(
   publicFileUrl: string,
 ): Promise<void> {
   const objectKey = extractBackblazeObjectKeyFromPublicFileUrl(publicFileUrl);
   if (objectKey === null) {
     throw new Error("Could not resolve Backblaze object key from public file URL.");
   }
-  await deleteCharacterPngFromBackblaze(objectKey);
+  await deletePngFromBackblaze(objectKey);
+}
+
+export async function deleteCharacterPngFromBackblaze(
+  objectKey: string,
+): Promise<void> {
+  if (isManagedCharacterBackblazeObjectKey(objectKey) === false) {
+    throw new Error("Refusing to delete a non-character object key.");
+  }
+  await deletePngFromBackblaze(objectKey);
+}
+
+export async function deleteCharacterPngFromBackblazeByPublicFileUrl(
+  publicFileUrl: string,
+): Promise<void> {
+  await deletePngFromBackblazeByPublicFileUrl(publicFileUrl);
 }
