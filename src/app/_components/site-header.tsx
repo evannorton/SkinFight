@@ -1,7 +1,7 @@
-import { Flex, Heading, Link, Separator } from "@radix-ui/themes";
-import NextLink from "next/link";
+import { Box, Separator } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 
+import { SiteHeaderNavigation } from "~/app/_components/site-header-navigation";
 import { UserRole } from "../../../generated/prisma";
 import { auth } from "~/server/auth";
 import { getCurrentOngoingEventForDisplay } from "~/server/event-for-display";
@@ -15,44 +15,13 @@ export async function SiteHeader(): Promise<ReactElement> {
 
   return (
     <header>
-      <Flex align="center" justify="between" px="6" py="4" width="100%">
-        <Flex align="center" gap="4" asChild>
-          <nav>
-            <Heading as="h1" size="5" weight="bold">
-              <Link asChild underline="hover" color="gray" highContrast>
-                <NextLink href="/">SkinFight</NextLink>
-              </Link>
-            </Heading>
-            <Link asChild size="2" weight="medium" underline="hover">
-              <NextLink href="/characters">Characters</NextLink>
-            </Link>
-          </nav>
-        </Flex>
-        <Flex align="center" gap="4" asChild>
-          <nav>
-            {hasCurrentOngoingEvent === true && (
-              <Link asChild size="2" weight="medium" underline="hover">
-                <NextLink href="/current-event">Current event</NextLink>
-              </Link>
-            )}
-            {isUserSignedIn === true && isSessionUserAdmin === true && (
-              <Link asChild size="2" weight="medium" underline="hover">
-                <NextLink href="/dashboard">Dashboard</NextLink>
-              </Link>
-            )}
-            {isUserSignedIn === false && (
-              <Link asChild size="2" weight="medium" underline="hover">
-                <NextLink href="/api/auth/signin">Sign in</NextLink>
-              </Link>
-            )}
-            {isUserSignedIn === true && (
-              <Link asChild size="2" weight="medium" underline="hover">
-                <NextLink href="/api/auth/signout">Sign out</NextLink>
-              </Link>
-            )}
-          </nav>
-        </Flex>
-      </Flex>
+      <Box px="6" py="4">
+        <SiteHeaderNavigation
+          hasCurrentOngoingEvent={hasCurrentOngoingEvent}
+          isUserSignedIn={isUserSignedIn}
+          isSessionUserAdmin={isSessionUserAdmin}
+        />
+      </Box>
       <Separator size="4" />
     </header>
   );
