@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 
+import { UserRole } from "../../../../generated/prisma";
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import { CharacterPageAttackDefendSection } from "~/app/characters/[characterId]/character-page-attack-defend-section";
+import { CharacterPageAdminSection } from "~/app/characters/[characterId]/character-page-admin-section";
 import { auth } from "~/server/auth";
 import { getCharacterPageForDisplay } from "~/server/character-page-data";
 
@@ -20,9 +22,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { characterId } = await props.params;
   const session = await auth();
+  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
   const characterPageForDisplay = await getCharacterPageForDisplay({
     characterId,
     viewerUserId: session?.user.id ?? null,
+    viewerIsAdmin,
   });
   if (characterPageForDisplay === null) {
     return { title: "Character not found · SkinFight" };
@@ -35,9 +39,11 @@ export default async function CharacterDetailPage(
 ): Promise<ReactElement> {
   const { characterId } = await props.params;
   const session = await auth();
+  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
   const characterPageForDisplay = await getCharacterPageForDisplay({
     characterId,
     viewerUserId: session?.user.id ?? null,
+    viewerIsAdmin,
   });
   if (characterPageForDisplay === null) {
     notFound();
@@ -51,6 +57,14 @@ export default async function CharacterDetailPage(
       <Heading as="h1" size="6" weight="bold" mb="6">
         {characterDetail.name}
       </Heading>
+
+      {viewerIsAdmin === true && (
+        <CharacterPageAdminSection
+          characterId={characterId}
+          characterName={characterDetail.name}
+          isCharacterHidden={characterDetail.isHidden}
+        />
+      )}
 
       <Flex direction="column" gap="6">
         <Box

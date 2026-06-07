@@ -71,6 +71,7 @@ function buildViewerActionAvailability(params: {
 export async function getCharacterPageForDisplay(params: {
   characterId: string;
   viewerUserId: string | null;
+  viewerIsAdmin: boolean;
 }): Promise<CharacterPageForDisplay | null> {
   const characterRow = await db.character.findUnique({
     where: { id: params.characterId },
@@ -81,6 +82,7 @@ export async function getCharacterPageForDisplay(params: {
       userId: true,
       teamId: true,
       eventId: true,
+      isHidden: true,
       user: {
         select: {
           name: true,
@@ -137,6 +139,15 @@ export async function getCharacterPageForDisplay(params: {
   });
 
   if (characterRow === null) {
+    return null;
+  }
+
+  const isViewerCharacterCreator =
+    params.viewerUserId !== null && params.viewerUserId === characterRow.userId;
+  const canViewerAccessHiddenCharacter =
+    params.viewerIsAdmin === true || isViewerCharacterCreator === true;
+
+  if (characterRow.isHidden === true && canViewerAccessHiddenCharacter === false) {
     return null;
   }
 
@@ -214,6 +225,7 @@ export async function getCharacterPageForDisplay(params: {
       }),
       teamName: characterRow.team.name,
       eventName: eventDisplayName,
+      isHidden: characterRow.isHidden,
     },
     viewerActionAvailability,
     attacks,

@@ -141,6 +141,7 @@ model Character {
     userId    String
     teamId    String
     eventId   String
+    isHidden  Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

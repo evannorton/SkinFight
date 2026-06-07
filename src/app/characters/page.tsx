@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import NextLink from "next/link";
 import type { ReactElement } from "react";
 
+import { UserRole } from "../../../generated/prisma";
 import { CharactersGridFilters } from "~/app/characters/characters-grid-filters";
 import { parseCharactersGridFilterValues } from "~/lib/characters-grid-filters";
 import {
@@ -10,6 +11,7 @@ import {
   buildEventDisplayNameForCharactersGridFilter,
   buildUserDisplayNameForCharactersGridFilter,
 } from "~/server/characters-grid-query";
+import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 export const metadata: Metadata = {
@@ -23,15 +25,41 @@ type CharactersPageProps = {
 export default async function CharactersPage(
   props: CharactersPageProps,
 ): Promise<ReactElement> {
+  const session = await auth();
+  const viewerUserId = session?.user.id ?? null;
+  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
+
   const searchParams = await props.searchParams;
   const filterValues = parseCharactersGridFilterValues(searchParams);
   const characterWhereInput =
     buildCharactersGridCharacterWhereInput(filterValues);
 
+  const hasBaseFilters = Object.keys(characterWhereInput).length > 0;
+  
+  let combinedWhereInput;
+  if (viewerIsAdmin === true) {
+    combinedWhereInput = characterWhereInput;
+  } else if (viewerUserId !== null) {
+    const hiddenFilter = {
+      OR: [
+        { isHidden: false },
+        { AND: [{ isHidden: true }, { userId: viewerUserId }] },
+      ],
+    };
+    combinedWhereInput = hasBaseFilters === true
+      ? { AND: [characterWhereInput, hiddenFilter] }
+      : hiddenFilter;
+  } else {
+    combinedWhereInput = {
+      ...characterWhereInput,
+      isHidden: false,
+    };
+  }
+
   const [characterRows, teamFilterOptionRows, eventFilterOptionRows, userFilterOptionRows] =
     await Promise.all([
       db.character.findMany({
-        where: characterWhereInput,
+        where: combinedWhereInput,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,

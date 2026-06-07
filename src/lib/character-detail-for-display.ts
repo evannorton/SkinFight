@@ -5,4 +5,5 @@ export type CharacterDetailForDisplay = {
   userDisplayName: string;
   teamName: string;
   eventName: string;
+  isHidden: boolean;
 };
