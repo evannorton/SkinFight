@@ -26,7 +26,7 @@ export async function POST(
     return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
   }
 
-  let requestBody: { isHidden: boolean };
+  let requestBody: unknown;
   try {
     requestBody = await request.json();
   } catch {
@@ -36,12 +36,19 @@ export async function POST(
     );
   }
 
-  if (typeof requestBody.isHidden !== "boolean") {
+  if (
+    typeof requestBody !== "object" ||
+    requestBody === null ||
+    !("isHidden" in requestBody) ||
+    typeof (requestBody as { isHidden: unknown }).isHidden !== "boolean"
+  ) {
     return NextResponse.json(
       { error: "isHidden must be a boolean." },
       { status: 400 },
     );
   }
+
+  const typedRequestBody = requestBody as { isHidden: boolean };
 
   const existingCharacter = await db.character.findUnique({
     where: { id: characterId },
@@ -58,7 +65,7 @@ export async function POST(
   try {
     await db.character.update({
       where: { id: characterId },
-      data: { isHidden: requestBody.isHidden },
+      data: { isHidden: typedRequestBody.isHidden },
     });
   } catch {
     return NextResponse.json(
