@@ -25,21 +25,29 @@ type CharacterPageAttackDefendSectionProps = {
   characterId: string;
   characterName: string;
   viewerActionAvailability: CharacterPageViewerActionAvailability;
+  viewerIsAdmin: boolean;
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
 };
 
 type OpenSubmissionModalKind = "attack" | "defend" | null;
 
+type ViewingAttackOrDefend = {
+  kind: "attack" | "defend";
+  id: string;
+  fileUrl: string;
+  isHidden: boolean;
+} | null;
+
 export function CharacterPageAttackDefendSection(
   props: CharacterPageAttackDefendSectionProps,
 ): ReactElement {
-  const { characterId, characterName, viewerActionAvailability, attacks, defends } = props;
+  const { characterId, characterName, viewerActionAvailability, viewerIsAdmin, attacks, defends } = props;
   const router = useRouter();
   const submissionPngFileInputRef = useRef<HTMLInputElement>(null);
   const [openSubmissionModalKind, setOpenSubmissionModalKind] =
     useState<OpenSubmissionModalKind>(null);
-  const [viewingSkinFileUrl, setViewingSkinFileUrl] = useState<string | null>(null);
+  const [viewingAttackOrDefend, setViewingAttackOrDefend] = useState<ViewingAttackOrDefend>(null);
   const [selectedSubmissionPngFile, setSelectedSubmissionPngFile] =
     useState<File | null>(null);
   const [isSubmittingAttackOrDefend, setIsSubmittingAttackOrDefend] =
@@ -246,7 +254,7 @@ export function CharacterPageAttackDefendSection(
       )}
       {attacks.length > 0 && (
         <Flex direction="column" gap="3" mb="6">
-          {attacks.map((attackRow) => {
+          {attacks.map((attackRow: CharacterAttackForDisplay) => {
             return (
               <CharacterAttackOrDefendListItem
                 key={attackRow.id}
@@ -254,7 +262,12 @@ export function CharacterPageAttackDefendSection(
                 submitterDisplayName={attackRow.submitterDisplayName}
                 submitterTeamName={attackRow.submitterTeamName}
                 onClickSkinPreview={() => {
-                  setViewingSkinFileUrl(attackRow.fileUrl);
+                  setViewingAttackOrDefend({
+                    kind: "attack" as const,
+                    id: attackRow.id,
+                    fileUrl: attackRow.fileUrl,
+                    isHidden: attackRow.isHidden === true,
+                  });
                 }}
               />
             );
@@ -271,23 +284,41 @@ export function CharacterPageAttackDefendSection(
         </Text>
       )}
       <Dialog.Root
-        open={viewingSkinFileUrl !== null}
+        open={viewingAttackOrDefend !== null}
         onOpenChange={(isOpen) => {
           if (isOpen === false) {
-            setViewingSkinFileUrl(null);
+            setViewingAttackOrDefend(null);
           }
         }}
       >
-        <Dialog.Content style={{ maxWidth: "min(24rem, 100vw - 2rem)" }}>
+        <Dialog.Content style={{ maxWidth: "min(28rem, 100vw - 2rem)" }}>
           <Dialog.Title>{characterName}</Dialog.Title>
-          <Flex direction="column" align="center" gap="3">
-            {viewingSkinFileUrl !== null && (
-              <CharacterSkinViewer
-                skinFileUrl={viewingSkinFileUrl}
-                widthPx={320}
-                heightPx={400}
+            
+            {viewerIsAdmin === true && viewingAttackOrDefend !== null && (
+              <AttackDefendAdminSection
+                attackOrDefendKind={viewingAttackOrDefend.kind}
+                attackOrDefendId={viewingAttackOrDefend.id}
+                isHidden={viewingAttackOrDefend.isHidden}
+                onUpdate={(newHiddenState) => {
+                  setViewingAttackOrDefend({
+                    ...viewingAttackOrDefend,
+                    isHidden: newHiddenState,
+                  });
+                  router.refresh();
+                }}
               />
             )}
+          <Flex direction="column" gap="4">
+            <Flex direction="column" align="center">
+              {viewingAttackOrDefend !== null && (
+                <CharacterSkinViewer
+                  skinFileUrl={viewingAttackOrDefend.fileUrl}
+                  widthPx={320}
+                  heightPx={400}
+                />
+              )}
+            </Flex>
+
             <Flex gap="3" justify="end" width="100%">
               <Dialog.Close>
                 <Button type="button" variant="soft" color="gray">
@@ -301,7 +332,7 @@ export function CharacterPageAttackDefendSection(
 
       {defends.length > 0 && (
         <Flex direction="column" gap="3">
-          {defends.map((defendRow) => {
+          {defends.map((defendRow: CharacterDefendForDisplay) => {
             return (
               <CharacterAttackOrDefendListItem
                 key={defendRow.id}
@@ -309,13 +340,117 @@ export function CharacterPageAttackDefendSection(
                 submitterDisplayName={defendRow.submitterDisplayName}
                 submitterTeamName={defendRow.submitterTeamName}
                 onClickSkinPreview={() => {
-                  setViewingSkinFileUrl(defendRow.fileUrl);
+                  setViewingAttackOrDefend({
+                    kind: "defend" as const,
+                    id: defendRow.id,
+                    fileUrl: defendRow.fileUrl,
+                    isHidden: defendRow.isHidden === true,
+                  });
                 }}
               />
             );
           })}
         </Flex>
       )}
+    </Box>
+  );
+}
+
+type AttackDefendAdminSectionProps = {
+  attackOrDefendKind: "attack" | "defend";
+  attackOrDefendId: string;
+  isHidden: boolean;
+  onUpdate: (newHiddenState: boolean) => void;
+};
+
+function AttackDefendAdminSection(
+  props: AttackDefendAdminSectionProps,
+): ReactElement {
+  const { attackOrDefendKind, attackOrDefendId, isHidden, onUpdate } = props;
+  const [isTogglingHiddenState, setIsTogglingHiddenState] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const itemTypeName = attackOrDefendKind === "attack" ? "attack" : "defend";
+  const apiEndpoint =
+    attackOrDefendKind === "attack"
+      ? `/api/attacks/${attackOrDefendId}/hide`
+      : `/api/defends/${attackOrDefendId}/hide`;
+
+  const handleToggleHiddenState = async (): Promise<void> => {
+    setIsTogglingHiddenState(true);
+    setErrorMessage(null);
+
+    const newHiddenState = isHidden === false;
+
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isHidden: newHiddenState }),
+      });
+
+      if (response.ok === false) {
+        const errorMessage = await parseJsonApiErrorMessage(
+          response,
+          `Failed to update ${itemTypeName} visibility.`,
+        );
+        setErrorMessage(errorMessage);
+        setIsTogglingHiddenState(false);
+        return;
+      }
+
+      onUpdate(newHiddenState);
+      setIsTogglingHiddenState(false);
+    } catch {
+      setErrorMessage(`Failed to update ${itemTypeName} visibility.`);
+      setIsTogglingHiddenState(false);
+    }
+  };
+
+  return (
+    <Box
+      p="3"
+      my="3"
+      style={{
+        borderRadius: "var(--radius-3)",
+        backgroundColor: "var(--gray-a3)",
+      }}
+    >
+      <Flex direction="column" gap="3">
+        <Heading as="h3" size="2" weight="bold">
+          Admin Actions
+        </Heading>
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="medium">
+            {isHidden === true
+              ? `This ${itemTypeName} is currently hidden to all non-admin users`
+              : `This ${itemTypeName} is currently visible to all users`}
+          </Text>
+          <Box>
+            <Button
+              type="button"
+              size="2"
+              color={isHidden === true ? "green" : "red"}
+              variant="soft"
+              disabled={isTogglingHiddenState === true}
+              onClick={handleToggleHiddenState}
+            >
+              {isTogglingHiddenState === true
+                ? "Updating..."
+                : isHidden === true
+                  ? `Unhide ${itemTypeName}`
+                  : `Hide ${itemTypeName}`}
+            </Button>
+          </Box>
+          {errorMessage !== null && (
+            <Text size="2" color="red">
+              {errorMessage}
+            </Text>
+          )}
+        </Flex>
+      </Flex>
     </Box>
   );
 }

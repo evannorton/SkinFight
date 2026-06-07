@@ -10,6 +10,7 @@ export type CharacterAttackForDisplay = {
   fileUrl: string;
   submitterDisplayName: string;
   submitterTeamName: string;
+  isHidden: boolean;
 };
 
 export type CharacterDefendForDisplay = {
@@ -17,6 +18,7 @@ export type CharacterDefendForDisplay = {
   fileUrl: string;
   submitterDisplayName: string;
   submitterTeamName: string;
+  isHidden: boolean;
 };
 
 export type CharacterPageForDisplay = {

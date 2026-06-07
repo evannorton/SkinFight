@@ -104,6 +104,8 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          isHidden: true,
+          userId: true,
           user: {
             select: {
               name: true,
@@ -122,6 +124,8 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          isHidden: true,
+          userId: true,
           user: {
             select: {
               name: true,
@@ -186,8 +190,20 @@ export async function getCharacterPageForDisplay(params: {
     characterCreatorUserId: characterRow.userId,
   });
 
-  const attacks: CharacterAttackForDisplay[] = characterRow.attacks.map(
-    (attackRow) => {
+  const attacks: CharacterAttackForDisplay[] = characterRow.attacks
+    .filter((attackRow) => {
+      if (params.viewerIsAdmin === true) {
+        return true;
+      }
+      if (attackRow.isHidden === false) {
+        return true;
+      }
+      if (params.viewerUserId !== null && attackRow.userId === params.viewerUserId) {
+        return true;
+      }
+      return false;
+    })
+    .map((attackRow) => {
       return {
         id: attackRow.id,
         fileUrl: attackRow.file,
@@ -196,12 +212,24 @@ export async function getCharacterPageForDisplay(params: {
           userEmail: attackRow.user.email,
         }),
         submitterTeamName: attackRow.team.name,
+        isHidden: attackRow.isHidden,
       };
-    },
-  );
+    });
 
-  const defends: CharacterDefendForDisplay[] = characterRow.defends.map(
-    (defendRow) => {
+  const defends: CharacterDefendForDisplay[] = characterRow.defends
+    .filter((defendRow) => {
+      if (params.viewerIsAdmin === true) {
+        return true;
+      }
+      if (defendRow.isHidden === false) {
+        return true;
+      }
+      if (params.viewerUserId !== null && defendRow.userId === params.viewerUserId) {
+        return true;
+      }
+      return false;
+    })
+    .map((defendRow) => {
       return {
         id: defendRow.id,
         fileUrl: defendRow.file,
@@ -210,9 +238,9 @@ export async function getCharacterPageForDisplay(params: {
           userEmail: defendRow.user.email,
         }),
         submitterTeamName: defendRow.team.name,
+        isHidden: defendRow.isHidden,
       };
-    },
-  );
+    });
 
   return {
     characterDetail: {

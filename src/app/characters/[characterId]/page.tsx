@@ -119,6 +119,7 @@ export default async function CharacterDetailPage(
         characterId={characterId}
         characterName={characterDetail.name}
         viewerActionAvailability={viewerActionAvailability}
+        viewerIsAdmin={viewerIsAdmin}
         attacks={attacks}
         defends={defends}
       />
