@@ -131,10 +131,13 @@ export function CharactersGridFilters(
       </Flex>
 
       {activeUserFilterDisplayName !== null && (
+        <>
         <Text size="2" mt="3">
           <Text weight="medium">User: </Text>
           {activeUserFilterDisplayName}
         </Text>
+        <br/>
+        </>
       )}
 
       {hasActiveFilters === true && (

@@ -1,9 +1,11 @@
-import { Box, Heading } from "@radix-ui/themes";
+import { Box, Heading, Link, Text } from "@radix-ui/themes";
 import type { Metadata } from "next";
+import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 
 import { TeamMembersList } from "~/app/teams/[teamId]/team-members-list";
+import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { db } from "~/server/db";
 
 type TeamPageProps = {
@@ -100,11 +102,23 @@ export default async function TeamPage(
     return 0;
   });
 
+  const teamCharactersPath = buildCharactersPagePath({
+    teamId: teamId,
+    eventId: null,
+    userId: null,
+  });
+
   return (
     <Box px="6" py="6">
-      <Heading as="h1" size="8" mb="6">
+      <Heading as="h1" size="8" mb="2">
         {team.name}
       </Heading>
+
+      <Text as="p" size="3" mb="6">
+        <Link asChild underline="hover">
+          <NextLink href={teamCharactersPath}>Team characters</NextLink>
+        </Link>
+      </Text>
 
       <TeamMembersList teamMembers={teamMembers} teamId={teamId} />
     </Box>
