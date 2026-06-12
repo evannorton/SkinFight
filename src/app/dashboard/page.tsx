@@ -4,6 +4,9 @@ import type { ReactElement } from "react";
 
 import { UserRole } from "../../../generated/prisma";
 import { AdminEventsSection } from "~/app/dashboard/admin-events-section";
+import { AdminHiddenAttacksSection } from "~/app/dashboard/admin-hidden-attacks-section";
+import { AdminHiddenCharactersSection } from "~/app/dashboard/admin-hidden-characters-section";
+import { AdminHiddenDefendsSection } from "~/app/dashboard/admin-hidden-defends-section";
 import { AdminTeamsSection } from "~/app/dashboard/admin-teams-section";
 import { auth } from "~/server/auth";
 
@@ -27,6 +30,9 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
       </Text>
       <AdminEventsSection />
       <AdminTeamsSection />
+      <AdminHiddenCharactersSection />
+      <AdminHiddenAttacksSection />
+      <AdminHiddenDefendsSection />
     </Box>
   );
 }

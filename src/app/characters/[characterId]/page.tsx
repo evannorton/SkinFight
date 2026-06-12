@@ -17,7 +17,24 @@ const CHARACTER_SKIN_VIEWER_HEIGHT_PX = 400;
 
 type CharacterDetailPageProps = {
   params: Promise<{ characterId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+function parseCharacterPageSearchParamString(
+  searchParamValue: string | string[] | undefined,
+): string | null {
+  if (typeof searchParamValue === "string" && searchParamValue.length > 0) {
+    return searchParamValue;
+  }
+  if (
+    Array.isArray(searchParamValue) &&
+    searchParamValue[0] !== undefined &&
+    searchParamValue[0].length > 0
+  ) {
+    return searchParamValue[0];
+  }
+  return null;
+}
 
 export async function generateMetadata(
   props: CharacterDetailPageProps,
@@ -40,6 +57,9 @@ export default async function CharacterDetailPage(
   props: CharacterDetailPageProps,
 ): Promise<ReactElement> {
   const { characterId } = await props.params;
+  const searchParams = await props.searchParams;
+  const initialAttackId = parseCharacterPageSearchParamString(searchParams.attackID);
+  const initialDefendId = parseCharacterPageSearchParamString(searchParams.defendID);
   const session = await auth();
   const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
   const characterPageForDisplay = await getCharacterPageForDisplay({
@@ -159,6 +179,8 @@ export default async function CharacterDetailPage(
         viewerIsAdmin={viewerIsAdmin}
         attacks={attacks}
         defends={defends}
+        initialAttackId={initialAttackId}
+        initialDefendId={initialDefendId}
       />
     </Box>
   );

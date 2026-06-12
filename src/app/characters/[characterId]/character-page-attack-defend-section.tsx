@@ -12,7 +12,7 @@ import {
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
@@ -30,6 +30,8 @@ type CharacterPageAttackDefendSectionProps = {
   viewerIsAdmin: boolean;
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
+  initialAttackId: string | null;
+  initialDefendId: string | null;
 };
 
 type OpenSubmissionModalKind = "attack" | "defend" | null;
@@ -44,11 +46,140 @@ type ViewingAttackOrDefend = {
   submitterTeamId: string;
 } | null;
 
+function buildViewingAttackFromDisplayRow(
+  attackRow: CharacterAttackForDisplay,
+): ViewingAttackOrDefend {
+  return {
+    kind: "attack",
+    id: attackRow.id,
+    fileUrl: attackRow.fileUrl,
+    isHidden: attackRow.isHidden === true,
+    submitterUserId: attackRow.submitterUserId,
+    submitterDisplayName: attackRow.submitterDisplayName,
+    submitterTeamId: attackRow.submitterTeamId,
+  };
+}
+
+function buildViewingDefendFromDisplayRow(
+  defendRow: CharacterDefendForDisplay,
+): ViewingAttackOrDefend {
+  return {
+    kind: "defend",
+    id: defendRow.id,
+    fileUrl: defendRow.fileUrl,
+    isHidden: defendRow.isHidden === true,
+    submitterUserId: defendRow.submitterUserId,
+    submitterDisplayName: defendRow.submitterDisplayName,
+    submitterTeamId: defendRow.submitterTeamId,
+  };
+}
+
+function findAttackRowById(
+  attacks: CharacterAttackForDisplay[],
+  attackId: string,
+): CharacterAttackForDisplay | null {
+  const attackRow = attacks.find((attack) => {
+    return attack.id === attackId;
+  });
+  if (attackRow === undefined) {
+    return null;
+  }
+  return attackRow;
+}
+
+function findDefendRowById(
+  defends: CharacterDefendForDisplay[],
+  defendId: string,
+): CharacterDefendForDisplay | null {
+  const defendRow = defends.find((defend) => {
+    return defend.id === defendId;
+  });
+  if (defendRow === undefined) {
+    return null;
+  }
+  return defendRow;
+}
+
+function buildCharacterAttackOrDefendSharePath(
+  characterId: string,
+  viewingAttackOrDefend: NonNullable<ViewingAttackOrDefend>,
+): string {
+  const searchParamName =
+    viewingAttackOrDefend.kind === "attack" ? "attackID" : "defendID";
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.set(searchParamName, viewingAttackOrDefend.id);
+  return `/characters/${characterId}?${urlSearchParams.toString()}`;
+}
+
+type CharacterAttackOrDefendCopyLinkButtonProps = {
+  characterId: string;
+  viewingAttackOrDefend: NonNullable<ViewingAttackOrDefend>;
+};
+
+function CharacterAttackOrDefendCopyLinkButton(
+  props: CharacterAttackOrDefendCopyLinkButtonProps,
+): ReactElement {
+  const { characterId, viewingAttackOrDefend } = props;
+  const [hasCopiedLink, setHasCopiedLink] = useState<boolean>(false);
+  const [copyLinkErrorMessage, setCopyLinkErrorMessage] = useState<
+    string | null
+  >(null);
+
+  const handleCopyLink = async (): Promise<void> => {
+    setCopyLinkErrorMessage(null);
+    const sharePath = buildCharacterAttackOrDefendSharePath(
+      characterId,
+      viewingAttackOrDefend,
+    );
+    const shareUrl = `${window.location.origin}${sharePath}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setHasCopiedLink(true);
+      window.setTimeout(() => {
+        setHasCopiedLink(false);
+      }, 2000);
+    } catch {
+      setCopyLinkErrorMessage("Failed to copy link.");
+    }
+  };
+
+  return (
+    <Flex direction="column" gap="1" align="start">
+      <Button
+        type="button"
+        variant="soft"
+        color="gray"
+        onClick={() => {
+          void handleCopyLink();
+        }}
+      >
+        {hasCopiedLink === true ? "Copied!" : "Copy link"}
+      </Button>
+      {copyLinkErrorMessage !== null && (
+        <Text size="1" color="red">
+          {copyLinkErrorMessage}
+        </Text>
+      )}
+    </Flex>
+  );
+}
+
 export function CharacterPageAttackDefendSection(
   props: CharacterPageAttackDefendSectionProps,
 ): ReactElement {
-  const { characterId, characterName, viewerActionAvailability, viewerIsAdmin, attacks, defends } = props;
+  const {
+    characterId,
+    characterName,
+    viewerActionAvailability,
+    viewerIsAdmin,
+    attacks,
+    defends,
+    initialAttackId,
+    initialDefendId,
+  } = props;
   const router = useRouter();
+  const hasOpenedAttackOrDefendFromSearchParamsRef = useRef<boolean>(false);
   const submissionPngFileInputRef = useRef<HTMLInputElement>(null);
   const [openSubmissionModalKind, setOpenSubmissionModalKind] =
     useState<OpenSubmissionModalKind>(null);
@@ -60,6 +191,42 @@ export function CharacterPageAttackDefendSection(
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState<
     string | null
   >(null);
+
+  const attackIdFromSearchParams = initialAttackId;
+  const defendIdFromSearchParams = initialDefendId;
+
+  useEffect(() => {
+    if (hasOpenedAttackOrDefendFromSearchParamsRef.current === true) {
+      return;
+    }
+
+    if (attackIdFromSearchParams !== null) {
+      const attackRow = findAttackRowById(attacks, attackIdFromSearchParams);
+      if (attackRow !== null) {
+        setViewingAttackOrDefend(buildViewingAttackFromDisplayRow(attackRow));
+        hasOpenedAttackOrDefendFromSearchParamsRef.current = true;
+        return;
+      }
+    }
+
+    if (defendIdFromSearchParams !== null) {
+      const defendRow = findDefendRowById(defends, defendIdFromSearchParams);
+      if (defendRow !== null) {
+        setViewingAttackOrDefend(buildViewingDefendFromDisplayRow(defendRow));
+        hasOpenedAttackOrDefendFromSearchParamsRef.current = true;
+      }
+    }
+  }, [attackIdFromSearchParams, defendIdFromSearchParams, attacks, defends]);
+
+  const handleCloseViewingAttackOrDefendModal = (): void => {
+    setViewingAttackOrDefend(null);
+
+    if (attackIdFromSearchParams === null && defendIdFromSearchParams === null) {
+      return;
+    }
+
+    router.replace(`/characters/${characterId}`, { scroll: false });
+  };
 
   const hasAttackOrDefendButtons =
     viewerActionAvailability.canShowAttackButton === true ||
@@ -267,15 +434,9 @@ export function CharacterPageAttackDefendSection(
                 submitterDisplayName={attackRow.submitterDisplayName}
                 submitterTeamName={attackRow.submitterTeamName}
                 onClickSkinPreview={() => {
-                  setViewingAttackOrDefend({
-                    kind: "attack" as const,
-                    id: attackRow.id,
-                    fileUrl: attackRow.fileUrl,
-                    isHidden: attackRow.isHidden === true,
-                    submitterUserId: attackRow.submitterUserId,
-                    submitterDisplayName: attackRow.submitterDisplayName,
-                    submitterTeamId: attackRow.submitterTeamId,
-                  });
+                  setViewingAttackOrDefend(
+                    buildViewingAttackFromDisplayRow(attackRow),
+                  );
                 }}
               />
             );
@@ -295,7 +456,7 @@ export function CharacterPageAttackDefendSection(
         open={viewingAttackOrDefend !== null}
         onOpenChange={(isOpen) => {
           if (isOpen === false) {
-            setViewingAttackOrDefend(null);
+            handleCloseViewingAttackOrDefendModal();
           }
         }}
       >
@@ -344,7 +505,13 @@ export function CharacterPageAttackDefendSection(
               )}
             </Flex>
 
-            <Flex gap="3" justify="end" width="100%">
+            <Flex gap="3" justify="between" width="100%" align="end" wrap="wrap">
+              {viewingAttackOrDefend !== null && (
+                <CharacterAttackOrDefendCopyLinkButton
+                  characterId={characterId}
+                  viewingAttackOrDefend={viewingAttackOrDefend}
+                />
+              )}
               <Dialog.Close>
                 <Button type="button" variant="soft" color="gray">
                   Close
@@ -365,17 +532,9 @@ export function CharacterPageAttackDefendSection(
                 submitterDisplayName={defendRow.submitterDisplayName}
                 submitterTeamName={defendRow.submitterTeamName}
                 onClickSkinPreview={() => {
-                  setViewingAttackOrDefend({
-                    kind: "defend" as const,
-                    id: defendRow.id,
-                    fileUrl: defendRow.fileUrl,
-                    isHidden: defendRow.isHidden === true,
-                     
-                    submitterUserId: defendRow.submitterUserId,
-                    submitterDisplayName: defendRow.submitterDisplayName,
-                     
-                    submitterTeamId: defendRow.submitterTeamId,
-                  });
+                  setViewingAttackOrDefend(
+                    buildViewingDefendFromDisplayRow(defendRow),
+                  );
                 }}
               />
             );
