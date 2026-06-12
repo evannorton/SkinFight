@@ -69,6 +69,7 @@ export function CharacterSkinViewer(
 
       void initializeSkinViewer();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [characterName, disposeSkinViewer, heightPx, skinFileUrl, widthPx],
   );
 

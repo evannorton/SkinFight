@@ -11,14 +11,13 @@ import {
   type CharactersGridEventFilterOption,
   type CharactersGridFilterValues,
   type CharactersGridTeamFilterOption,
-  type CharactersGridUserFilterOption,
 } from "~/lib/characters-grid-filters";
 
 type CharactersGridFiltersProps = {
   filterValues: CharactersGridFilterValues;
   teamFilterOptions: CharactersGridTeamFilterOption[];
   eventFilterOptions: CharactersGridEventFilterOption[];
-  userFilterOptions: CharactersGridUserFilterOption[];
+  activeUserFilterDisplayName: string | null;
 };
 
 export function CharactersGridFilters(
@@ -28,7 +27,7 @@ export function CharactersGridFilters(
     filterValues,
     teamFilterOptions,
     eventFilterOptions,
-    userFilterOptions,
+    activeUserFilterDisplayName,
   } = props;
   const router = useRouter();
 
@@ -48,8 +47,6 @@ export function CharactersGridFilters(
     filterValues.teamId ?? CHARACTERS_GRID_ALL_FILTER_VALUE;
   const selectedEventFilterValue =
     filterValues.eventId ?? CHARACTERS_GRID_ALL_FILTER_VALUE;
-  const selectedUserFilterValue =
-    filterValues.userId ?? CHARACTERS_GRID_ALL_FILTER_VALUE;
 
   return (
     <Box mb="6">
@@ -59,41 +56,6 @@ export function CharactersGridFilters(
         align={{ initial: "stretch", sm: "end" }}
         wrap="wrap"
       >
-        <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
-          <Text as="label" size="2" weight="medium" htmlFor="characters-team-filter">
-            Team
-          </Text>
-          <Select.Root
-            value={selectedTeamFilterValue}
-            onValueChange={(selectedValue) => {
-              navigateWithFilterValues({
-                ...filterValues,
-                teamId:
-                  selectedValue === CHARACTERS_GRID_ALL_FILTER_VALUE
-                    ? null
-                    : selectedValue,
-              });
-            }}
-          >
-            <Select.Trigger id="characters-team-filter" />
-            <Select.Content>
-              <Select.Item value={CHARACTERS_GRID_ALL_FILTER_VALUE}>
-                All teams
-              </Select.Item>
-              {teamFilterOptions.map((teamFilterOption) => {
-                return (
-                  <Select.Item
-                    key={teamFilterOption.id}
-                    value={teamFilterOption.id}
-                  >
-                    {teamFilterOption.name}
-                  </Select.Item>
-                );
-              })}
-            </Select.Content>
-          </Select.Root>
-        </Flex>
-
         <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
           <Text as="label" size="2" weight="medium" htmlFor="characters-event-filter">
             Event
@@ -107,6 +69,7 @@ export function CharactersGridFilters(
                   selectedValue === CHARACTERS_GRID_ALL_FILTER_VALUE
                     ? null
                     : selectedValue,
+                teamId: null,
               });
             }}
           >
@@ -129,41 +92,50 @@ export function CharactersGridFilters(
           </Select.Root>
         </Flex>
 
-        <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
-          <Text as="label" size="2" weight="medium" htmlFor="characters-user-filter">
-            User
-          </Text>
-          <Select.Root
-            value={selectedUserFilterValue}
-            onValueChange={(selectedValue) => {
-              navigateWithFilterValues({
-                ...filterValues,
-                userId:
-                  selectedValue === CHARACTERS_GRID_ALL_FILTER_VALUE
-                    ? null
-                    : selectedValue,
-              });
-            }}
-          >
-            <Select.Trigger id="characters-user-filter" />
-            <Select.Content>
-              <Select.Item value={CHARACTERS_GRID_ALL_FILTER_VALUE}>
-                All users
-              </Select.Item>
-              {userFilterOptions.map((userFilterOption) => {
-                return (
-                  <Select.Item
-                    key={userFilterOption.id}
-                    value={userFilterOption.id}
-                  >
-                    {userFilterOption.displayName}
-                  </Select.Item>
-                );
-              })}
-            </Select.Content>
-          </Select.Root>
-        </Flex>
+        {filterValues.eventId !== null && (
+          <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
+            <Text as="label" size="2" weight="medium" htmlFor="characters-team-filter">
+              Team
+            </Text>
+            <Select.Root
+              value={selectedTeamFilterValue}
+              onValueChange={(selectedValue) => {
+                navigateWithFilterValues({
+                  ...filterValues,
+                  teamId:
+                    selectedValue === CHARACTERS_GRID_ALL_FILTER_VALUE
+                      ? null
+                      : selectedValue,
+                });
+              }}
+            >
+              <Select.Trigger id="characters-team-filter" />
+              <Select.Content>
+                <Select.Item value={CHARACTERS_GRID_ALL_FILTER_VALUE}>
+                  All teams
+                </Select.Item>
+                {teamFilterOptions.map((teamFilterOption) => {
+                  return (
+                    <Select.Item
+                      key={teamFilterOption.id}
+                      value={teamFilterOption.id}
+                    >
+                      {teamFilterOption.name}
+                    </Select.Item>
+                  );
+                })}
+              </Select.Content>
+            </Select.Root>
+          </Flex>
+        )}
       </Flex>
+
+      {activeUserFilterDisplayName !== null && (
+        <Text size="2" mt="3">
+          <Text weight="medium">User: </Text>
+          {activeUserFilterDisplayName}
+        </Text>
+      )}
 
       {hasActiveFilters === true && (
         <Link asChild size="2" mt="3" underline="hover">

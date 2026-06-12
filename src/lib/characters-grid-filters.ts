@@ -14,11 +14,6 @@ export type CharactersGridEventFilterOption = {
   displayName: string;
 };
 
-export type CharactersGridUserFilterOption = {
-  id: string;
-  displayName: string;
-};
-
 export const CHARACTERS_GRID_ALL_FILTER_VALUE = "__all__";
 
 export function parseCharactersGridFilterValues(

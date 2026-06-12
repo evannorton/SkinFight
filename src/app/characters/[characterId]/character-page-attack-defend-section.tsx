@@ -6,14 +6,16 @@ import {
   Dialog,
   Flex,
   Heading,
+  Link,
   Text,
 } from "@radix-ui/themes";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useRef, useState } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
-
+import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
 import type {
   CharacterAttackForDisplay,
@@ -37,6 +39,9 @@ type ViewingAttackOrDefend = {
   id: string;
   fileUrl: string;
   isHidden: boolean;
+  submitterUserId: string;
+  submitterDisplayName: string;
+  submitterTeamId: string;
 } | null;
 
 export function CharacterPageAttackDefendSection(
@@ -267,6 +272,9 @@ export function CharacterPageAttackDefendSection(
                     id: attackRow.id,
                     fileUrl: attackRow.fileUrl,
                     isHidden: attackRow.isHidden === true,
+                    submitterUserId: attackRow.submitterUserId,
+                    submitterDisplayName: attackRow.submitterDisplayName,
+                    submitterTeamId: attackRow.submitterTeamId,
                   });
                 }}
               />
@@ -309,6 +317,23 @@ export function CharacterPageAttackDefendSection(
               />
             )}
           <Flex direction="column" gap="4">
+            {viewingAttackOrDefend !== null && (
+              <Text as="p" size="3">
+                <Text weight="medium">User: </Text>
+                <Link asChild underline="hover">
+                  <NextLink
+                    href={buildCharactersPagePath({
+                      teamId: viewingAttackOrDefend.submitterTeamId,
+                      eventId: null,
+                      userId: viewingAttackOrDefend.submitterUserId,
+                    })}
+                  >
+                    {viewingAttackOrDefend.submitterDisplayName}
+                  </NextLink>
+                </Link>
+              </Text>
+            )}
+
             <Flex direction="column" align="center">
               {viewingAttackOrDefend !== null && (
                 <CharacterSkinViewer
@@ -345,6 +370,11 @@ export function CharacterPageAttackDefendSection(
                     id: defendRow.id,
                     fileUrl: defendRow.fileUrl,
                     isHidden: defendRow.isHidden === true,
+                     
+                    submitterUserId: defendRow.submitterUserId,
+                    submitterDisplayName: defendRow.submitterDisplayName,
+                     
+                    submitterTeamId: defendRow.submitterTeamId,
                   });
                 }}
               />

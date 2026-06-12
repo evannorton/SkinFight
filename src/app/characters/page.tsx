@@ -56,7 +56,31 @@ export default async function CharactersPage(
     };
   }
 
-  const [characterRows, teamFilterOptionRows, eventFilterOptionRows, userFilterOptionRows] =
+  const activeUserFilterQuery =
+    filterValues.userId !== null
+      ? db.user.findUnique({
+          where: { id: filterValues.userId },
+          select: {
+            name: true,
+            email: true,
+          },
+        })
+      : Promise.resolve(null);
+
+  const teamFilterOptionQuery =
+    filterValues.eventId !== null
+      ? db.eventTeam.findMany({
+          where: { eventId: filterValues.eventId },
+          orderBy: { sortOrder: "asc" },
+          select: {
+            team: {
+              select: { id: true, name: true },
+            },
+          },
+        })
+      : Promise.resolve([]);
+
+  const [characterRows, eventTeamFilterOptionRows, eventFilterOptionRows, activeUserFilterRow] =
     await Promise.all([
       db.character.findMany({
         where: combinedWhereInput,
@@ -67,11 +91,7 @@ export default async function CharactersPage(
           file: true,
         },
       }),
-      db.team.findMany({
-        where: { characters: { some: {} } },
-        orderBy: { name: "asc" },
-        select: { id: true, name: true },
-      }),
+      teamFilterOptionQuery,
       db.event.findMany({
         where: { characters: { some: {} } },
         orderBy: { date: "desc" },
@@ -82,16 +102,15 @@ export default async function CharactersPage(
           endDate: true,
         },
       }),
-      db.user.findMany({
-        where: { characters: { some: {} } },
-        orderBy: { name: "asc" },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      }),
+      activeUserFilterQuery,
     ]);
+
+  const teamFilterOptionRows = eventTeamFilterOptionRows.map((eventTeamRow) => {
+    return {
+      id: eventTeamRow.team.id,
+      name: eventTeamRow.team.name,
+    };
+  });
 
   const eventFilterOptions = eventFilterOptionRows.map((eventRow) => {
     return {
@@ -104,15 +123,13 @@ export default async function CharactersPage(
     };
   });
 
-  const userFilterOptions = userFilterOptionRows.map((userRow) => {
-    return {
-      id: userRow.id,
-      displayName: buildUserDisplayNameForCharactersGridFilter({
-        userName: userRow.name,
-        userEmail: userRow.email,
-      }),
-    };
-  });
+  const activeUserFilterDisplayName =
+    activeUserFilterRow !== null
+      ? buildUserDisplayNameForCharactersGridFilter({
+          userName: activeUserFilterRow.name,
+          userEmail: activeUserFilterRow.email,
+        })
+      : null;
 
   return (
     <Box px="6" py="6">
@@ -120,7 +137,7 @@ export default async function CharactersPage(
         filterValues={filterValues}
         teamFilterOptions={teamFilterOptionRows}
         eventFilterOptions={eventFilterOptions}
-        userFilterOptions={userFilterOptions}
+        activeUserFilterDisplayName={activeUserFilterDisplayName}
       />
 
       {characterRows.length === 0 && (

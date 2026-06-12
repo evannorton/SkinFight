@@ -106,6 +106,7 @@ export async function getCharacterPageForDisplay(params: {
           file: true,
           isHidden: true,
           userId: true,
+          teamId: true,
           user: {
             select: {
               name: true,
@@ -126,6 +127,7 @@ export async function getCharacterPageForDisplay(params: {
           file: true,
           isHidden: true,
           userId: true,
+          teamId: true,
           user: {
             select: {
               name: true,
@@ -207,10 +209,12 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: attackRow.id,
         fileUrl: attackRow.file,
+        submitterUserId: attackRow.userId,
         submitterDisplayName: buildUserDisplayName({
           userName: attackRow.user.name,
           userEmail: attackRow.user.email,
         }),
+        submitterTeamId: attackRow.teamId,
         submitterTeamName: attackRow.team.name,
         isHidden: attackRow.isHidden,
       };
@@ -233,10 +237,12 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: defendRow.id,
         fileUrl: defendRow.file,
+        submitterUserId: defendRow.userId,
         submitterDisplayName: buildUserDisplayName({
           userName: defendRow.user.name,
           userEmail: defendRow.user.email,
         }),
+        submitterTeamId: defendRow.teamId,
         submitterTeamName: defendRow.team.name,
         isHidden: defendRow.isHidden,
       };
@@ -247,11 +253,14 @@ export async function getCharacterPageForDisplay(params: {
       id: characterRow.id,
       name: characterRow.name,
       fileUrl: characterRow.file,
+      userId: characterRow.userId,
       userDisplayName: buildUserDisplayName({
         userName: characterRow.user.name,
         userEmail: characterRow.user.email,
       }),
+      teamId: characterRow.teamId,
       teamName: characterRow.team.name,
+      eventId: characterRow.eventId,
       eventName: eventDisplayName,
       isHidden: characterRow.isHidden,
     },

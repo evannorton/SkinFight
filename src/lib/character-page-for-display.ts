@@ -8,7 +8,9 @@ export type CharacterPageViewerActionAvailability = {
 export type CharacterAttackForDisplay = {
   id: string;
   fileUrl: string;
+  submitterUserId: string;
   submitterDisplayName: string;
+  submitterTeamId: string;
   submitterTeamName: string;
   isHidden: boolean;
 };
@@ -16,7 +18,9 @@ export type CharacterAttackForDisplay = {
 export type CharacterDefendForDisplay = {
   id: string;
   fileUrl: string;
+  submitterUserId: string;
   submitterDisplayName: string;
+  submitterTeamId: string;
   submitterTeamName: string;
   isHidden: boolean;
 };

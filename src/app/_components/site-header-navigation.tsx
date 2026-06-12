@@ -26,6 +26,7 @@ function buildSiteHeaderNavLinkItems(
 ): SiteHeaderNavLinkItem[] {
   const navLinkItems: SiteHeaderNavLinkItem[] = [
     { href: "/characters", label: "Characters" },
+    { href: "/teams", label: "Teams" },
   ];
   if (props.hasCurrentOngoingEvent === true) {
     navLinkItems.push({
@@ -78,11 +79,11 @@ export function SiteHeaderNavigation(
   props: SiteHeaderNavigationProps,
 ): ReactElement {
   const navLinkItems = buildSiteHeaderNavLinkItems(props);
-  const charactersNavLinkItem = navLinkItems.find((navLinkItem) => {
-    return navLinkItem.href === "/characters";
+  const primaryNavLinkItems = navLinkItems.filter((navLinkItem) => {
+    return navLinkItem.href === "/characters" || navLinkItem.href === "/teams";
   });
   const secondaryNavLinkItems = navLinkItems.filter((navLinkItem) => {
-    return navLinkItem.href !== "/characters";
+    return navLinkItem.href !== "/characters" && navLinkItem.href !== "/teams";
   });
 
   return (
@@ -93,12 +94,17 @@ export function SiteHeaderNavigation(
             <NextLink href="/">SkinFight</NextLink>
           </Link>
         </Heading>
-        {charactersNavLinkItem !== undefined && (
+        {primaryNavLinkItems.length > 0 && (
           <Flex display={{ initial: "none", md: "flex" }} align="center" gap="4">
-            <SiteHeaderNavLink
-              href={charactersNavLinkItem.href}
-              label={charactersNavLinkItem.label}
-            />
+            {primaryNavLinkItems.map((navLinkItem) => {
+              return (
+                <SiteHeaderNavLink
+                  key={navLinkItem.href}
+                  href={navLinkItem.href}
+                  label={navLinkItem.label}
+                />
+              );
+            })}
           </Flex>
         )}
       </Flex>

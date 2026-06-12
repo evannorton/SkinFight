@@ -1,5 +1,6 @@
-import { Box, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Flex, Heading, Link, Text } from "@radix-ui/themes";
 import type { Metadata } from "next";
+import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 
@@ -7,6 +8,7 @@ import { UserRole } from "../../../../generated/prisma";
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import { CharacterPageAttackDefendSection } from "~/app/characters/[characterId]/character-page-attack-defend-section";
 import { CharacterPageAdminSection } from "~/app/characters/[characterId]/character-page-admin-section";
+import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { auth } from "~/server/auth";
 import { getCharacterPageForDisplay } from "~/server/character-page-data";
 
@@ -51,6 +53,29 @@ export default async function CharacterDetailPage(
 
   const { characterDetail, viewerActionAvailability, attacks, defends } =
     characterPageForDisplay;
+
+   
+  const characterUserId: string = characterDetail.userId;
+   
+  const characterTeamId: string = characterDetail.teamId;
+   
+  const characterEventId: string = characterDetail.eventId;
+
+  const userCharactersPath = buildCharactersPagePath({
+    teamId: characterTeamId,
+    eventId: null,
+    userId: characterUserId,
+  });
+  const teamCharactersPath = buildCharactersPagePath({
+    teamId: characterTeamId,
+    eventId: null,
+    userId: null,
+  });
+  const eventCharactersPath = buildCharactersPagePath({
+    teamId: null,
+    eventId: characterEventId,
+    userId: null,
+  });
 
   return (
     <Box px="6" py="6" style={{ maxWidth: "48rem" }}>
@@ -102,15 +127,27 @@ export default async function CharacterDetailPage(
         <Flex direction="column" gap="2">
           <Text as="p" size="3">
             <Text weight="medium">User: </Text>
-            {characterDetail.userDisplayName}
+            <Link asChild underline="hover">
+              <NextLink href={userCharactersPath}>
+                {characterDetail.userDisplayName}
+              </NextLink>
+            </Link>
           </Text>
           <Text as="p" size="3">
             <Text weight="medium">Team: </Text>
-            {characterDetail.teamName}
+            <Link asChild underline="hover">
+              <NextLink href={teamCharactersPath}>
+                {characterDetail.teamName}
+              </NextLink>
+            </Link>
           </Text>
           <Text as="p" size="3">
             <Text weight="medium">Event: </Text>
-            {characterDetail.eventName}
+            <Link asChild underline="hover">
+              <NextLink href={eventCharactersPath}>
+                {characterDetail.eventName}
+              </NextLink>
+            </Link>
           </Text>
         </Flex>
       </Flex>
