@@ -11,6 +11,12 @@ enum UserRole {
     ADMIN
 }
 
+enum AttackDefendShading {
+    ONE
+    TWO
+    THREE
+}
+
 datasource db {
     provider = "postgresql"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
@@ -157,15 +163,16 @@ model Character {
 }
 
 model Attack {
-    id          String   @id @default(cuid())
+    id          String              @id @default(cuid())
     characterId String
     userId      String
     teamId      String
     eventId     String
     file        String
-    isHidden    Boolean  @default(false)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    shading     AttackDefendShading
+    isHidden    Boolean             @default(false)
+    createdAt   DateTime            @default(now())
+    updatedAt   DateTime            @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -178,15 +185,16 @@ model Attack {
 }
 
 model Defend {
-    id          String   @id @default(cuid())
+    id          String              @id @default(cuid())
     characterId String
     userId      String
     teamId      String
     eventId     String
     file        String
-    isHidden    Boolean  @default(false)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    shading     AttackDefendShading
+    isHidden    Boolean             @default(false)
+    createdAt   DateTime            @default(now())
+    updatedAt   DateTime            @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -104,6 +104,7 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          shading: true,
           isHidden: true,
           userId: true,
           teamId: true,
@@ -125,6 +126,7 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          shading: true,
           isHidden: true,
           userId: true,
           teamId: true,
@@ -209,6 +211,7 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: attackRow.id,
         fileUrl: attackRow.file,
+        shading: attackRow.shading,
         submitterUserId: attackRow.userId,
         submitterDisplayName: buildUserDisplayName({
           userName: attackRow.user.name,
@@ -237,6 +240,7 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: defendRow.id,
         fileUrl: defendRow.file,
+        shading: defendRow.shading,
         submitterUserId: defendRow.userId,
         submitterDisplayName: buildUserDisplayName({
           userName: defendRow.user.name,

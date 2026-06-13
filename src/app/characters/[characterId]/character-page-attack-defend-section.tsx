@@ -7,6 +7,7 @@ import {
   Flex,
   Heading,
   Link,
+  RadioGroup,
   Text,
 } from "@radix-ui/themes";
 import NextLink from "next/link";
@@ -15,6 +16,12 @@ import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
+import {
+  ATTACK_DEFEND_SHADING_OPTIONS,
+  formatAttackDefendShadingLabelWithPointValue,
+  isAttackDefendShadingValue,
+  type AttackDefendShadingValue,
+} from "~/lib/attack-defend-shading";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
 import type {
@@ -40,6 +47,7 @@ type ViewingAttackOrDefend = {
   kind: "attack" | "defend";
   id: string;
   fileUrl: string;
+  shading: AttackDefendShadingValue;
   isHidden: boolean;
   submitterUserId: string;
   submitterDisplayName: string;
@@ -53,6 +61,7 @@ function buildViewingAttackFromDisplayRow(
     kind: "attack",
     id: attackRow.id,
     fileUrl: attackRow.fileUrl,
+    shading: attackRow.shading,
     isHidden: attackRow.isHidden === true,
     submitterUserId: attackRow.submitterUserId,
     submitterDisplayName: attackRow.submitterDisplayName,
@@ -67,6 +76,7 @@ function buildViewingDefendFromDisplayRow(
     kind: "defend",
     id: defendRow.id,
     fileUrl: defendRow.fileUrl,
+    shading: defendRow.shading,
     isHidden: defendRow.isHidden === true,
     submitterUserId: defendRow.submitterUserId,
     submitterDisplayName: defendRow.submitterDisplayName,
@@ -186,6 +196,8 @@ export function CharacterPageAttackDefendSection(
   const [viewingAttackOrDefend, setViewingAttackOrDefend] = useState<ViewingAttackOrDefend>(null);
   const [selectedSubmissionPngFile, setSelectedSubmissionPngFile] =
     useState<File | null>(null);
+  const [selectedSubmissionShading, setSelectedSubmissionShading] =
+    useState<AttackDefendShadingValue | null>(null);
   const [isSubmittingAttackOrDefend, setIsSubmittingAttackOrDefend] =
     useState<boolean>(false);
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState<
@@ -233,7 +245,9 @@ export function CharacterPageAttackDefendSection(
     viewerActionAvailability.canShowDefendButton === true;
 
   const isSubmitDisabled =
-    isSubmittingAttackOrDefend === true || selectedSubmissionPngFile === null;
+    isSubmittingAttackOrDefend === true ||
+    selectedSubmissionPngFile === null ||
+    selectedSubmissionShading === null;
 
   const handleSubmissionPngFileInputChange = (
     event: ChangeEvent<HTMLInputElement>,
@@ -246,6 +260,7 @@ export function CharacterPageAttackDefendSection(
   const handleCloseSubmissionModal = (): void => {
     setOpenSubmissionModalKind(null);
     setSelectedSubmissionPngFile(null);
+    setSelectedSubmissionShading(null);
     setSubmissionErrorMessage(null);
     if (submissionPngFileInputRef.current !== null) {
       submissionPngFileInputRef.current.value = "";
@@ -265,12 +280,16 @@ export function CharacterPageAttackDefendSection(
     if (selectedSubmissionPngFile === null) {
       return;
     }
+    if (selectedSubmissionShading === null) {
+      return;
+    }
 
     setIsSubmittingAttackOrDefend(true);
     setSubmissionErrorMessage(null);
 
     const submissionFormData = new FormData();
     submissionFormData.append("file", selectedSubmissionPngFile);
+    submissionFormData.append("shading", selectedSubmissionShading);
 
     const submissionApiPath =
       openSubmissionModalKind === "attack"
@@ -387,6 +406,35 @@ export function CharacterPageAttackDefendSection(
                 )}
               </Flex>
 
+              <Flex direction="column" gap="2">
+                <Text as="label" size="2" weight="medium">
+                  Shading
+                </Text>
+                <RadioGroup.Root
+                  value={selectedSubmissionShading ?? ""}
+                  disabled={isSubmittingAttackOrDefend === true}
+                  onValueChange={(selectedValue) => {
+                    if (isAttackDefendShadingValue(selectedValue) === true) {
+                      setSelectedSubmissionShading(selectedValue);
+                      setSubmissionErrorMessage(null);
+                    }
+                  }}
+                >
+                  <Flex gap="4">
+                    {ATTACK_DEFEND_SHADING_OPTIONS.map((shadingOption) => {
+                      return (
+                        <Text key={shadingOption} as="label" size="2">
+                          <Flex align="center" gap="2">
+                            <RadioGroup.Item value={shadingOption} />
+                            {formatAttackDefendShadingLabelWithPointValue(shadingOption)}
+                          </Flex>
+                        </Text>
+                      );
+                    })}
+                  </Flex>
+                </RadioGroup.Root>
+              </Flex>
+
               {submissionErrorMessage !== null && (
                 <Text size="2" color="red">
                   {submissionErrorMessage}
@@ -431,6 +479,7 @@ export function CharacterPageAttackDefendSection(
               <CharacterAttackOrDefendListItem
                 key={attackRow.id}
                 fileUrl={attackRow.fileUrl}
+                shadingLabel={formatAttackDefendShadingLabelWithPointValue(attackRow.shading)}
                 submitterDisplayName={attackRow.submitterDisplayName}
                 submitterTeamName={attackRow.submitterTeamName}
                 onClickSkinPreview={() => {
@@ -478,6 +527,13 @@ export function CharacterPageAttackDefendSection(
               />
             )}
           <Flex direction="column" gap="4">
+            {viewingAttackOrDefend !== null && (
+              <Text as="p" size="3">
+                <Text weight="medium">Shading: </Text>
+                {formatAttackDefendShadingLabelWithPointValue(viewingAttackOrDefend.shading)}
+              </Text>
+            )}
+
             {viewingAttackOrDefend !== null && (
               <Text as="p" size="3">
                 <Text weight="medium">User: </Text>
@@ -529,6 +585,7 @@ export function CharacterPageAttackDefendSection(
               <CharacterAttackOrDefendListItem
                 key={defendRow.id}
                 fileUrl={defendRow.fileUrl}
+                shadingLabel={formatAttackDefendShadingLabelWithPointValue(defendRow.shading)}
                 submitterDisplayName={defendRow.submitterDisplayName}
                 submitterTeamName={defendRow.submitterTeamName}
                 onClickSkinPreview={() => {
@@ -646,6 +703,7 @@ function AttackDefendAdminSection(
 
 type CharacterAttackOrDefendListItemProps = {
   fileUrl: string;
+  shadingLabel: string;
   submitterDisplayName: string;
   submitterTeamName: string;
   onClickSkinPreview: () => void;
@@ -654,8 +712,13 @@ type CharacterAttackOrDefendListItemProps = {
 function CharacterAttackOrDefendListItem(
   props: CharacterAttackOrDefendListItemProps,
 ): ReactElement {
-  const { fileUrl, submitterDisplayName, submitterTeamName, onClickSkinPreview } =
-    props;
+  const {
+    fileUrl,
+    shadingLabel,
+    submitterDisplayName,
+    submitterTeamName,
+    onClickSkinPreview,
+  } = props;
 
   return (
     <Flex
@@ -699,7 +762,7 @@ function CharacterAttackOrDefendListItem(
           {submitterDisplayName}
         </Text>
         <Text size="2" color="gray">
-          {submitterTeamName}
+          {submitterTeamName} · Shading {shadingLabel}
         </Text>
       </Flex>
     </Flex>

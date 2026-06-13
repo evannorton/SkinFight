@@ -3,6 +3,10 @@ import {
   isUploadedFilePngImage,
   MAX_CHARACTER_PNG_FILE_SIZE_BYTES,
 } from "~/server/character-png-validation";
+import {
+  isAttackDefendShadingValue,
+  type AttackDefendShadingValue,
+} from "~/lib/attack-defend-shading";
 
 export const MAX_CHARACTER_NAME_LENGTH = 120;
 
@@ -88,4 +92,20 @@ export async function parseOptionalCharacterPngFileFieldValue(
     uploadedPngFile: parsedRequiredPngUpload.uploadedPngFile,
     fileBuffer: parsedRequiredPngUpload.fileBuffer,
   };
+}
+
+export type ParsedAttackDefendShading =
+  | { isValid: true; shading: AttackDefendShadingValue }
+  | { isValid: false; errorMessage: string };
+
+export function parseAttackDefendShadingFieldValue(
+  shadingFieldValue: FormDataEntryValue | null,
+): ParsedAttackDefendShading {
+  if (typeof shadingFieldValue !== "string") {
+    return { isValid: false, errorMessage: "Shading is required." };
+  }
+  if (isAttackDefendShadingValue(shadingFieldValue) === false) {
+    return { isValid: false, errorMessage: "Shading must be A, B, or C." };
+  }
+  return { isValid: true, shading: shadingFieldValue };
 }

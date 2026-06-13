@@ -5,10 +5,12 @@ import type { ReactElement } from "react";
 import { HomeNextEventSection } from "~/app/_components/home-next-event-section";
 import { CurrentEventCharactersSection } from "~/app/current-event/current-event-characters-section";
 import { CurrentEventParticipationSection } from "~/app/current-event/current-event-participation-section";
+import { CurrentEventTeamsSection } from "~/app/current-event/current-event-teams-section";
 import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-display";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { getCurrentOngoingEventWithTeams } from "~/server/event-for-display";
+import { getEventTeamTotalPointValuesByTeamId } from "~/server/team-point-values";
 
 export default async function CurrentEventPage(): Promise<ReactElement> {
   const session = await auth();
@@ -16,6 +18,11 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
   if (currentOngoingEventWithTeams === null) {
     redirect("/");
   }
+
+  const eventTeamTotalPointValuesByTeamId =
+    await getEventTeamTotalPointValuesByTeamId(
+      currentOngoingEventWithTeams.eventId,
+    );
 
   const isUserSignedIn = session !== null;
 
@@ -68,6 +75,10 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
         eventEndsAtIso={currentOngoingEventWithTeams.endsAtIso}
         eventDateTimeRangeLabel={currentOngoingEventWithTeams.dateTimeRangeLabel}
         shouldShowLinkToCurrentEventPage={false}
+      />
+      <CurrentEventTeamsSection
+        teams={currentOngoingEventWithTeams.teams}
+        teamTotalPointValuesByTeamId={eventTeamTotalPointValuesByTeamId}
       />
       <CurrentEventParticipationSection
         isUserSignedIn={isUserSignedIn}

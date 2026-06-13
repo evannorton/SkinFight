@@ -3,7 +3,10 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { authorizeCharacterAttackDefendSubmission } from "~/server/character-attack-defend-authorization";
-import { parseCharacterPngFileFieldValue } from "~/server/character-form-parsing";
+import {
+  parseAttackDefendShadingFieldValue,
+  parseCharacterPngFileFieldValue,
+} from "~/server/character-form-parsing";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import { uploadPngToBackblaze } from "~/server/backblaze-storage";
 import { auth } from "~/server/auth";
@@ -43,6 +46,16 @@ export async function POST(
   if (parsedCharacterPngUpload.isValid === false) {
     return NextResponse.json(
       { error: parsedCharacterPngUpload.errorMessage },
+      { status: 400 },
+    );
+  }
+
+  const parsedShading = parseAttackDefendShadingFieldValue(
+    formData.get("shading"),
+  );
+  if (parsedShading.isValid === false) {
+    return NextResponse.json(
+      { error: parsedShading.errorMessage },
       { status: 400 },
     );
   }
@@ -88,6 +101,7 @@ export async function POST(
       teamId: authorizationResult.submitterTeamId,
       eventId: authorizationResult.eventId,
       file: publicFileUrl,
+      shading: parsedShading.shading,
     },
     select: {
       id: true,

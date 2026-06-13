@@ -1,3 +1,4 @@
+import type { AttackDefendShadingValue } from "~/lib/attack-defend-shading";
 import type { CharacterDetailForDisplay } from "~/lib/character-detail-for-display";
 
 export type CharacterPageViewerActionAvailability = {
@@ -8,6 +9,7 @@ export type CharacterPageViewerActionAvailability = {
 export type CharacterAttackForDisplay = {
   id: string;
   fileUrl: string;
+  shading: AttackDefendShadingValue;
   submitterUserId: string;
   submitterDisplayName: string;
   submitterTeamId: string;
@@ -18,6 +20,7 @@ export type CharacterAttackForDisplay = {
 export type CharacterDefendForDisplay = {
   id: string;
   fileUrl: string;
+  shading: AttackDefendShadingValue;
   submitterUserId: string;
   submitterDisplayName: string;
   submitterTeamId: string;

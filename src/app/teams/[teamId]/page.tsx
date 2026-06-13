@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { TeamMembersList } from "~/app/teams/[teamId]/team-members-list";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { db } from "~/server/db";
+import { getTeamTotalPointValue } from "~/server/team-point-values";
 
 type TeamPageProps = {
   params: Promise<{ teamId: string }>;
@@ -50,37 +51,40 @@ export default async function TeamPage(
   const params = await props.params;
   const teamId = params.teamId;
 
-  const team = await db.team.findUnique({
-    where: { id: teamId },
-    select: {
-      id: true,
-      name: true,
-      eventParticipations: {
-        select: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
+  const [team, teamTotalPointValue] = await Promise.all([
+    db.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        name: true,
+        eventParticipations: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    getTeamTotalPointValue(teamId),
+  ]);
 
   if (team === null) {
     notFound();
   }
 
-  const seenUserIds = new Set<string>();
+  const teamMemberUserIds = new Set<string>();
   const teamMembers: TeamMember[] = [];
 
   for (const participation of team.eventParticipations) {
     const userId = participation.user.id;
-    if (seenUserIds.has(userId) === false) {
-      seenUserIds.add(userId);
+    if (teamMemberUserIds.has(userId) === false) {
+      teamMemberUserIds.add(userId);
       teamMembers.push({
         id: participation.user.id,
         name: participation.user.name,
@@ -113,6 +117,10 @@ export default async function TeamPage(
       <Heading as="h1" size="8" mb="2">
         {team.name}
       </Heading>
+
+      <Text as="p" size="4" mb="2">
+        {teamTotalPointValue} points
+      </Text>
 
       <Text as="p" size="3" mb="6">
         <Link asChild underline="hover">

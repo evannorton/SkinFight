@@ -4,6 +4,7 @@ import NextLink from "next/link";
 import type { ReactElement } from "react";
 
 import { db } from "~/server/db";
+import { getTeamTotalPointValuesByTeamId } from "~/server/team-point-values";
 
 export const metadata: Metadata = {
   title: "Teams · SkinFight",
@@ -33,27 +34,30 @@ function buildEventDisplayName(eventName: string, eventDate: Date, eventEndDate:
 }
 
 export default async function TeamsPage(): Promise<ReactElement> {
-  const eventsWithTeamsData = await db.event.findMany({
-    orderBy: { date: "desc" },
-    select: {
-      id: true,
-      name: true,
-      date: true,
-      endDate: true,
-      eventTeams: {
-        orderBy: { sortOrder: "asc" },
-        select: {
-          sortOrder: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
+  const [eventsWithTeamsData, teamTotalPointValuesByTeamId] = await Promise.all([
+    db.event.findMany({
+      orderBy: { date: "desc" },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        endDate: true,
+        eventTeams: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            sortOrder: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    getTeamTotalPointValuesByTeamId(),
+  ]);
 
   const eventsWithTeams: EventWithTeams[] = eventsWithTeamsData.map((event) => {
     return {
@@ -100,10 +104,14 @@ export default async function TeamsPage(): Promise<ReactElement> {
             {event.teams.length > 0 && (
               <Box ml="4">
                 {event.teams.map((team) => {
+                  const teamTotalPointValue =
+                    teamTotalPointValuesByTeamId.get(team.id) ?? 0;
                   return (
                     <Text key={team.id} as="p" size="3" mb="2">
                       <Link asChild underline="hover">
-                        <NextLink href={`/teams/${team.id}`}>{team.name}</NextLink>
+                        <NextLink href={`/teams/${team.id}`}>
+                          {team.name} ({teamTotalPointValue} points)
+                        </NextLink>
                       </Link>
                     </Text>
                   );
