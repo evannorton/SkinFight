@@ -132,11 +132,6 @@ export function EventTeamsEditor(props: EventTeamsEditorProps): ReactElement {
           })}
         </Flex>
       )}
-      {teamsAvailableToAdd.length === 0 && draftTeamIds.length > 0 && (
-        <Text as="p" size="2" color="gray">
-          All teams are already on this event.
-        </Text>
-      )}
       {teamsAvailableToAdd.length > 0 && (
         <Flex direction="column" gap="2">
           <Select.Root
