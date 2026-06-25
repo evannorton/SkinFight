@@ -57,7 +57,12 @@ export function CharactersGridFilters(
         wrap="wrap"
       >
         <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
-          <Text as="label" size="2" weight="medium" htmlFor="characters-event-filter">
+          <Text
+            as="label"
+            size="2"
+            weight="medium"
+            htmlFor="characters-event-filter"
+          >
             Event
           </Text>
           <Select.Root
@@ -94,7 +99,12 @@ export function CharactersGridFilters(
 
         {filterValues.eventId !== null && (
           <Flex direction="column" gap="1" style={{ minWidth: "12rem" }}>
-            <Text as="label" size="2" weight="medium" htmlFor="characters-team-filter">
+            <Text
+              as="label"
+              size="2"
+              weight="medium"
+              htmlFor="characters-team-filter"
+            >
               Team
             </Text>
             <Select.Root
@@ -132,11 +142,11 @@ export function CharactersGridFilters(
 
       {activeUserFilterDisplayName !== null && (
         <>
-        <Text size="2" mt="3">
-          <Text weight="medium">User: </Text>
-          {activeUserFilterDisplayName}
-        </Text>
-        <br/>
+          <Text size="2" mt="3">
+            <Text weight="medium">User: </Text>
+            {activeUserFilterDisplayName}
+          </Text>
+          <br />
         </>
       )}
 

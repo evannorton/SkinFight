@@ -1,6 +1,10 @@
 import "server-only";
 
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 
@@ -89,7 +93,9 @@ export function extractBackblazeObjectKeyFromPublicFileUrl(
   return objectKey;
 }
 
-export function isManagedCharacterBackblazeObjectKey(objectKey: string): boolean {
+export function isManagedCharacterBackblazeObjectKey(
+  objectKey: string,
+): boolean {
   return objectKey.startsWith(CHARACTER_OBJECT_KEY_PREFIX);
 }
 
@@ -133,7 +139,9 @@ export async function deletePngFromBackblazeByPublicFileUrl(
 ): Promise<void> {
   const objectKey = extractBackblazeObjectKeyFromPublicFileUrl(publicFileUrl);
   if (objectKey === null) {
-    throw new Error("Could not resolve Backblaze object key from public file URL.");
+    throw new Error(
+      "Could not resolve Backblaze object key from public file URL.",
+    );
   }
   await deletePngFromBackblaze(objectKey);
 }

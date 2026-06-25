@@ -163,17 +163,14 @@ export function AdminTeamsSection(): ReactElement {
           Loading…
         </Text>
       )}
-      {listTeamsQuery.isSuccess === true && listTeamsQuery.data.length === 0 && (
-        <Text size="2" color="gray">
-          No teams yet.
-        </Text>
-      )}
+      {listTeamsQuery.isSuccess === true &&
+        listTeamsQuery.data.length === 0 && (
+          <Text size="2" color="gray">
+            No teams yet.
+          </Text>
+        )}
       {listTeamsQuery.isSuccess === true && listTeamsQuery.data.length > 0 && (
-        <Grid
-          columns={{ initial: "1", sm: "2", md: "3" }}
-          gap="4"
-          width="100%"
-        >
+        <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4" width="100%">
           {listTeamsQuery.data.map((teamRow) => (
             <TeamAdminCard
               key={teamRow.id}

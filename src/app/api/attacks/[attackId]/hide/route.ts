@@ -23,7 +23,10 @@ export async function POST(
 
   const { attackId } = await context.params;
   if (attackId.length === 0) {
-    return NextResponse.json({ error: "Attack ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Attack ID is required." },
+      { status: 400 },
+    );
   }
 
   let requestBody: unknown;
@@ -56,10 +59,7 @@ export async function POST(
   });
 
   if (existingAttack === null) {
-    return NextResponse.json(
-      { error: "Attack not found." },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Attack not found." }, { status: 404 });
   }
 
   try {

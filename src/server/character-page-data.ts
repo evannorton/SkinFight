@@ -5,7 +5,9 @@ import type {
   CharacterDefendForDisplay,
   CharacterPageForDisplay,
   CharacterPageViewerActionAvailability,
+  ThemeForAttackDefendSubmission,
 } from "~/lib/character-page-for-display";
+import { getThemesForCurrentEventWeek } from "~/server/event-current-week-themes";
 import { db } from "~/server/db";
 
 function buildUserDisplayName(params: {
@@ -57,7 +59,8 @@ function buildViewerActionAvailability(params: {
       canShowDefendButton: false,
     };
   }
-  const isCharacterOnViewerTeam = params.characterTeamId === params.viewerTeamId;
+  const isCharacterOnViewerTeam =
+    params.characterTeamId === params.viewerTeamId;
   const isViewerCharacterCreator =
     params.viewerUserId !== null &&
     params.viewerUserId === params.characterCreatorUserId;
@@ -108,6 +111,11 @@ export async function getCharacterPageForDisplay(params: {
           isHidden: true,
           userId: true,
           teamId: true,
+          theme: {
+            select: {
+              name: true,
+            },
+          },
           user: {
             select: {
               name: true,
@@ -130,6 +138,11 @@ export async function getCharacterPageForDisplay(params: {
           isHidden: true,
           userId: true,
           teamId: true,
+          theme: {
+            select: {
+              name: true,
+            },
+          },
           user: {
             select: {
               name: true,
@@ -155,7 +168,10 @@ export async function getCharacterPageForDisplay(params: {
   const canViewerAccessHiddenCharacter =
     params.viewerIsAdmin === true || isViewerCharacterCreator === true;
 
-  if (characterRow.isHidden === true && canViewerAccessHiddenCharacter === false) {
+  if (
+    characterRow.isHidden === true &&
+    canViewerAccessHiddenCharacter === false
+  ) {
     return null;
   }
 
@@ -194,6 +210,13 @@ export async function getCharacterPageForDisplay(params: {
     characterCreatorUserId: characterRow.userId,
   });
 
+  let submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[] = [];
+  if (isCharacterInCurrentOngoingEvent === true) {
+    submissionThemesForCurrentWeek = await getThemesForCurrentEventWeek({
+      eventId: characterRow.eventId,
+    });
+  }
+
   const attacks: CharacterAttackForDisplay[] = characterRow.attacks
     .filter((attackRow) => {
       if (params.viewerIsAdmin === true) {
@@ -202,7 +225,10 @@ export async function getCharacterPageForDisplay(params: {
       if (attackRow.isHidden === false) {
         return true;
       }
-      if (params.viewerUserId !== null && attackRow.userId === params.viewerUserId) {
+      if (
+        params.viewerUserId !== null &&
+        attackRow.userId === params.viewerUserId
+      ) {
         return true;
       }
       return false;
@@ -219,6 +245,7 @@ export async function getCharacterPageForDisplay(params: {
         }),
         submitterTeamId: attackRow.teamId,
         submitterTeamName: attackRow.team.name,
+        themeName: attackRow.theme?.name ?? null,
         isHidden: attackRow.isHidden,
       };
     });
@@ -231,7 +258,10 @@ export async function getCharacterPageForDisplay(params: {
       if (defendRow.isHidden === false) {
         return true;
       }
-      if (params.viewerUserId !== null && defendRow.userId === params.viewerUserId) {
+      if (
+        params.viewerUserId !== null &&
+        defendRow.userId === params.viewerUserId
+      ) {
         return true;
       }
       return false;
@@ -248,6 +278,7 @@ export async function getCharacterPageForDisplay(params: {
         }),
         submitterTeamId: defendRow.teamId,
         submitterTeamName: defendRow.team.name,
+        themeName: defendRow.theme?.name ?? null,
         isHidden: defendRow.isHidden,
       };
     });
@@ -269,6 +300,7 @@ export async function getCharacterPageForDisplay(params: {
       isHidden: characterRow.isHidden,
     },
     viewerActionAvailability,
+    submissionThemesForCurrentWeek,
     attacks,
     defends,
   };

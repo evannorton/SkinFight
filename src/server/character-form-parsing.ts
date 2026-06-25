@@ -79,9 +79,8 @@ export async function parseOptionalCharacterPngFileFieldValue(
     return { isValid: true, hasFile: false };
   }
 
-  const parsedRequiredPngUpload = await parseCharacterPngFileFieldValue(
-    fileFieldValue,
-  );
+  const parsedRequiredPngUpload =
+    await parseCharacterPngFileFieldValue(fileFieldValue);
   if (parsedRequiredPngUpload.isValid === false) {
     return parsedRequiredPngUpload;
   }
@@ -108,4 +107,23 @@ export function parseAttackDefendShadingFieldValue(
     return { isValid: false, errorMessage: "Shading must be A, B, or C." };
   }
   return { isValid: true, shading: shadingFieldValue };
+}
+
+export type ParsedOptionalThemeId =
+  | { isValid: true; themeId: string | null }
+  | { isValid: false; errorMessage: string };
+
+export function parseOptionalThemeIdFieldValue(
+  themeIdFieldValue: FormDataEntryValue | null,
+): ParsedOptionalThemeId {
+  if (themeIdFieldValue === null) {
+    return { isValid: true, themeId: null };
+  }
+  if (typeof themeIdFieldValue === "string" && themeIdFieldValue.length === 0) {
+    return { isValid: true, themeId: null };
+  }
+  if (typeof themeIdFieldValue !== "string") {
+    return { isValid: false, errorMessage: "Invalid theme selection." };
+  }
+  return { isValid: true, themeId: themeIdFieldValue };
 }

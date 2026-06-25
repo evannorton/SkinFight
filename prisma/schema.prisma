@@ -90,6 +90,7 @@ model Event {
     createdAt           DateTime             @default(now())
     updatedAt           DateTime             @updatedAt
     eventTeams          EventTeam[]
+    weeks               Week[]
     eventParticipations EventParticipation[]
     characters          Character[]
     attacks             Attack[]
@@ -121,6 +122,34 @@ model EventTeam {
 
     @@unique([eventId, teamId])
     @@index([eventId])
+}
+
+model Week {
+    id        String   @id @default(cuid())
+    eventId   String
+    sortOrder Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    themes Theme[]
+
+    @@index([eventId])
+}
+
+model Theme {
+    id        String   @id @default(cuid())
+    weekId    String
+    name      String
+    sortOrder Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    week    Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+    attacks Attack[]
+    defends Defend[]
+
+    @@index([weekId])
 }
 
 model EventParticipation {
@@ -168,6 +197,7 @@ model Attack {
     userId      String
     teamId      String
     eventId     String
+    themeId     String?
     file        String
     shading     AttackDefendShading
     isHidden    Boolean             @default(false)
@@ -178,10 +208,12 @@ model Attack {
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
 
     @@index([characterId])
     @@index([eventId])
     @@index([userId])
+    @@index([themeId])
 }
 
 model Defend {
@@ -190,6 +222,7 @@ model Defend {
     userId      String
     teamId      String
     eventId     String
+    themeId     String?
     file        String
     shading     AttackDefendShading
     isHidden    Boolean             @default(false)
@@ -200,10 +233,12 @@ model Defend {
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
 
     @@index([characterId])
     @@index([eventId])
     @@index([userId])
+    @@index([themeId])
 }
 
 model VerificationToken {

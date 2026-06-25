@@ -32,10 +32,11 @@ export async function authorizeCharacterAttackDefendSubmission(params: {
     };
   }
 
-  const eventAuthorizationResult = await authorizeUserCharacterEventParticipation({
-    userId: params.userId,
-    eventId: existingCharacter.eventId,
-  });
+  const eventAuthorizationResult =
+    await authorizeUserCharacterEventParticipation({
+      userId: params.userId,
+      eventId: existingCharacter.eventId,
+    });
   if (eventAuthorizationResult.isAuthorized === false) {
     return {
       isAuthorized: false,

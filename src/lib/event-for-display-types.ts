@@ -20,3 +20,13 @@ export type CurrentOngoingEventWithTeams = EventForHighlightDisplay & {
   eventId: string;
   teams: CurrentEventTeamForParticipation[];
 };
+
+export type CurrentEventWeekThemeForDisplay = {
+  themeId: string;
+  themeName: string;
+};
+
+export type CurrentEventWeekForDisplay = {
+  weekNumber: number;
+  themes: CurrentEventWeekThemeForDisplay[];
+};

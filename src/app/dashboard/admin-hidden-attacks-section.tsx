@@ -47,10 +47,12 @@ export async function AdminHiddenAttacksSection(): Promise<ReactElement> {
       {hiddenAttackRows.length > 0 && (
         <Flex direction="column" gap="2">
           {hiddenAttackRows.map((hiddenAttackRow) => {
-            const userDisplayName = buildUserDisplayNameForCharactersGridFilter({
-              userName: hiddenAttackRow.user.name,
-              userEmail: hiddenAttackRow.user.email,
-            });
+            const userDisplayName = buildUserDisplayNameForCharactersGridFilter(
+              {
+                userName: hiddenAttackRow.user.name,
+                userEmail: hiddenAttackRow.user.email,
+              },
+            );
             return (
               <Text key={hiddenAttackRow.id} as="p" size="2">
                 <Link asChild underline="hover">

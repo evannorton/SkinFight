@@ -35,7 +35,7 @@ export default async function CharactersPage(
     buildCharactersGridCharacterWhereInput(filterValues);
 
   const hasBaseFilters = Object.keys(characterWhereInput).length > 0;
-  
+
   let combinedWhereInput;
   if (viewerIsAdmin === true) {
     combinedWhereInput = characterWhereInput;
@@ -46,9 +46,10 @@ export default async function CharactersPage(
         { AND: [{ isHidden: true }, { userId: viewerUserId }] },
       ],
     };
-    combinedWhereInput = hasBaseFilters === true
-      ? { AND: [characterWhereInput, hiddenFilter] }
-      : hiddenFilter;
+    combinedWhereInput =
+      hasBaseFilters === true
+        ? { AND: [characterWhereInput, hiddenFilter] }
+        : hiddenFilter;
   } else {
     combinedWhereInput = {
       ...characterWhereInput,
@@ -80,30 +81,34 @@ export default async function CharactersPage(
         })
       : Promise.resolve([]);
 
-  const [characterRows, eventTeamFilterOptionRows, eventFilterOptionRows, activeUserFilterRow] =
-    await Promise.all([
-      db.character.findMany({
-        where: combinedWhereInput,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          file: true,
-        },
-      }),
-      teamFilterOptionQuery,
-      db.event.findMany({
-        where: { characters: { some: {} } },
-        orderBy: { date: "desc" },
-        select: {
-          id: true,
-          name: true,
-          date: true,
-          endDate: true,
-        },
-      }),
-      activeUserFilterQuery,
-    ]);
+  const [
+    characterRows,
+    eventTeamFilterOptionRows,
+    eventFilterOptionRows,
+    activeUserFilterRow,
+  ] = await Promise.all([
+    db.character.findMany({
+      where: combinedWhereInput,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        file: true,
+      },
+    }),
+    teamFilterOptionQuery,
+    db.event.findMany({
+      where: { characters: { some: {} } },
+      orderBy: { date: "desc" },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        endDate: true,
+      },
+    }),
+    activeUserFilterQuery,
+  ]);
 
   const teamFilterOptionRows = eventTeamFilterOptionRows.map((eventTeamRow) => {
     return {

@@ -12,6 +12,14 @@ const eventTeamIdsSchema = z
     message: "Duplicate teams are not allowed.",
   });
 
+const themeNameSchema = z.string().min(1, "Theme name is required.").max(200);
+
+const eventWeeksInputSchema = z.array(
+  z.object({
+    themeNames: z.array(themeNameSchema),
+  }),
+);
+
 const eventDateTimeRangeSchema = z
   .object({
     date: z.coerce.date(),
@@ -45,6 +53,14 @@ const eventListInclude = {
   eventTeams: {
     orderBy: { sortOrder: "asc" as const },
     include: { team: true },
+  },
+  weeks: {
+    orderBy: { sortOrder: "asc" as const },
+    include: {
+      themes: {
+        orderBy: { sortOrder: "asc" as const },
+      },
+    },
   },
 };
 
@@ -82,6 +98,7 @@ export const eventRouter = createTRPCRouter({
           id: z.string().min(1),
           name: eventNameSchema,
           teamIds: eventTeamIdsSchema,
+          weeks: eventWeeksInputSchema,
         })
         .and(eventDateTimeRangeSchema),
     )
@@ -130,6 +147,48 @@ export const eventRouter = createTRPCRouter({
               sortOrder: teamIndex,
             },
           });
+        }
+        await transactionClient.week.deleteMany({
+          where: { eventId: input.id },
+        });
+        for (
+          let weekIndex = 0;
+          weekIndex < input.weeks.length;
+          weekIndex = weekIndex + 1
+        ) {
+          const weekInput = input.weeks[weekIndex];
+          if (weekInput === undefined) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Could not save event weeks.",
+            });
+          }
+          const createdWeek = await transactionClient.week.create({
+            data: {
+              eventId: input.id,
+              sortOrder: weekIndex,
+            },
+          });
+          for (
+            let themeIndex = 0;
+            themeIndex < weekInput.themeNames.length;
+            themeIndex = themeIndex + 1
+          ) {
+            const themeName = weekInput.themeNames[themeIndex];
+            if (themeName === undefined) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Could not save event themes.",
+              });
+            }
+            await transactionClient.theme.create({
+              data: {
+                weekId: createdWeek.id,
+                name: themeName,
+                sortOrder: themeIndex,
+              },
+            });
+          }
         }
         return transactionClient.event.update({
           where: { id: input.id },

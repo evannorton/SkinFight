@@ -50,7 +50,9 @@ export async function generateMetadata(
   if (characterPageForDisplay === null) {
     return { title: "Character not found · SkinFight" };
   }
-  return { title: `${characterPageForDisplay.characterDetail.name} · SkinFight` };
+  return {
+    title: `${characterPageForDisplay.characterDetail.name} · SkinFight`,
+  };
 }
 
 export default async function CharacterDetailPage(
@@ -58,8 +60,12 @@ export default async function CharacterDetailPage(
 ): Promise<ReactElement> {
   const { characterId } = await props.params;
   const searchParams = await props.searchParams;
-  const initialAttackId = parseCharacterPageSearchParamString(searchParams.attackID);
-  const initialDefendId = parseCharacterPageSearchParamString(searchParams.defendID);
+  const initialAttackId = parseCharacterPageSearchParamString(
+    searchParams.attackID,
+  );
+  const initialDefendId = parseCharacterPageSearchParamString(
+    searchParams.defendID,
+  );
   const session = await auth();
   const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
   const characterPageForDisplay = await getCharacterPageForDisplay({
@@ -71,14 +77,18 @@ export default async function CharacterDetailPage(
     notFound();
   }
 
-  const { characterDetail, viewerActionAvailability, attacks, defends } =
-    characterPageForDisplay;
+  const {
+    characterDetail,
+    viewerActionAvailability,
+    submissionThemesForCurrentWeek,
+    attacks,
+    defends,
+  } = characterPageForDisplay;
 
-   
   const characterUserId: string = characterDetail.userId;
-   
+
   const characterTeamId: string = characterDetail.teamId;
-   
+
   const characterEventId: string = characterDetail.eventId;
 
   const userCharactersPath = buildCharactersPagePath({
@@ -177,6 +187,7 @@ export default async function CharacterDetailPage(
         characterName={characterDetail.name}
         viewerActionAvailability={viewerActionAvailability}
         viewerIsAdmin={viewerIsAdmin}
+        submissionThemesForCurrentWeek={submissionThemesForCurrentWeek}
         attacks={attacks}
         defends={defends}
         initialAttackId={initialAttackId}

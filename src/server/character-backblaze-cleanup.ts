@@ -17,9 +17,7 @@ export async function deleteBackblazeFilesForPublicFileUrls(
     try {
       await deletePngFromBackblazeByPublicFileUrl(publicFileUrl);
     } catch {
-      console.error(
-        `Failed to delete file from Backblaze: ${publicFileUrl}`,
-      );
+      console.error(`Failed to delete file from Backblaze: ${publicFileUrl}`);
     }
   }
 }

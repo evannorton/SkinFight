@@ -62,6 +62,7 @@ export async function authorizeUserCharacterEventParticipation(params: {
   return {
     isAuthorized: true,
     event,
-    participation: existingParticipation as AuthorizedCharacterEventParticipation,
+    participation:
+      existingParticipation as AuthorizedCharacterEventParticipation,
   };
 }

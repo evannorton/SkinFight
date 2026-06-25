@@ -18,7 +18,10 @@ type TeamMembersListProps = {
   teamId: string;
 };
 
-function buildUserDisplayName(userName: string | null, userEmail: string | null): string {
+function buildUserDisplayName(
+  userName: string | null,
+  userEmail: string | null,
+): string {
   if (userName !== null && userName !== "") {
     return userName;
   }

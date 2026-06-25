@@ -1,9 +1,9 @@
 import "server-only";
 
 import {
-  getAttackDefendShadingPointValue,
+  getAttackDefendPointValue,
   isAttackDefendShadingValue,
-  sumAttackDefendShadingPointValuesFromShadingRows,
+  sumAttackDefendPointValuesFromRows,
 } from "~/lib/attack-defend-shading";
 import { db } from "~/server/db";
 
@@ -14,18 +14,24 @@ const visibleAttackDefendWhereInput = {
   },
 };
 
-function addShadingRowPointValueToTeamTotalPointValues(
+function addAttackDefendRowPointValueToTeamTotalPointValues(
   teamTotalPointValuesByTeamId: Map<string, number>,
   teamId: string,
   shading: string,
+  themeId: string | null,
 ): void {
   if (isAttackDefendShadingValue(shading) === false) {
     throw new Error(`Unknown attack/defend shading: ${shading}`);
   }
-  const currentTeamTotalPointValue = teamTotalPointValuesByTeamId.get(teamId) ?? 0;
+  const currentTeamTotalPointValue =
+    teamTotalPointValuesByTeamId.get(teamId) ?? 0;
   teamTotalPointValuesByTeamId.set(
     teamId,
-    currentTeamTotalPointValue + getAttackDefendShadingPointValue(shading),
+    currentTeamTotalPointValue +
+      getAttackDefendPointValue({
+        shading,
+        hasThemeSelected: themeId !== null,
+      }),
   );
 }
 
@@ -38,6 +44,7 @@ export async function getTeamTotalPointValue(teamId: string): Promise<number> {
       },
       select: {
         shading: true,
+        themeId: true,
       },
     }),
     db.defend.findMany({
@@ -47,11 +54,12 @@ export async function getTeamTotalPointValue(teamId: string): Promise<number> {
       },
       select: {
         shading: true,
+        themeId: true,
       },
     }),
   ]);
 
-  return sumAttackDefendShadingPointValuesFromShadingRows([
+  return sumAttackDefendPointValuesFromRows([
     ...teamAttackRows,
     ...teamDefendRows,
   ]);
@@ -71,6 +79,7 @@ export async function getEventTeamTotalPointValuesByTeamId(
       select: {
         teamId: true,
         shading: true,
+        themeId: true,
       },
     }),
     db.defend.findMany({
@@ -81,30 +90,35 @@ export async function getEventTeamTotalPointValuesByTeamId(
       select: {
         teamId: true,
         shading: true,
+        themeId: true,
       },
     }),
   ]);
 
   for (const teamAttackRow of teamAttackRows) {
-    addShadingRowPointValueToTeamTotalPointValues(
+    addAttackDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamAttackRow.teamId,
       teamAttackRow.shading,
+      teamAttackRow.themeId,
     );
   }
 
   for (const teamDefendRow of teamDefendRows) {
-    addShadingRowPointValueToTeamTotalPointValues(
+    addAttackDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamDefendRow.teamId,
       teamDefendRow.shading,
+      teamDefendRow.themeId,
     );
   }
 
   return teamTotalPointValuesByTeamId;
 }
 
-export async function getTeamTotalPointValuesByTeamId(): Promise<Map<string, number>> {
+export async function getTeamTotalPointValuesByTeamId(): Promise<
+  Map<string, number>
+> {
   const teamTotalPointValuesByTeamId = new Map<string, number>();
 
   const [teamAttackRows, teamDefendRows] = await Promise.all([
@@ -113,6 +127,7 @@ export async function getTeamTotalPointValuesByTeamId(): Promise<Map<string, num
       select: {
         teamId: true,
         shading: true,
+        themeId: true,
       },
     }),
     db.defend.findMany({
@@ -120,23 +135,26 @@ export async function getTeamTotalPointValuesByTeamId(): Promise<Map<string, num
       select: {
         teamId: true,
         shading: true,
+        themeId: true,
       },
     }),
   ]);
 
   for (const teamAttackRow of teamAttackRows) {
-    addShadingRowPointValueToTeamTotalPointValues(
+    addAttackDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamAttackRow.teamId,
       teamAttackRow.shading,
+      teamAttackRow.themeId,
     );
   }
 
   for (const teamDefendRow of teamDefendRows) {
-    addShadingRowPointValueToTeamTotalPointValues(
+    addAttackDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamDefendRow.teamId,
       teamDefendRow.shading,
+      teamDefendRow.themeId,
     );
   }
 

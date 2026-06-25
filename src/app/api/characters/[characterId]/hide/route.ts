@@ -23,7 +23,10 @@ export async function POST(
 
   const { characterId } = await context.params;
   if (characterId.length === 0) {
-    return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Character ID is required." },
+      { status: 400 },
+    );
   }
 
   let requestBody: unknown;

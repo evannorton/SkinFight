@@ -82,8 +82,7 @@ export function CurrentEventParticipationSection(
       {isUserSignedIn === true && userParticipationTeamId !== null && (
         <Flex direction="column" gap="3" align="start">
           <Text as="p" size="3" color="gray">
-            You are participating on{" "}
-            {userParticipationTeamName ?? "your team"}.
+            You are participating on {userParticipationTeamName ?? "your team"}.
           </Text>
           <Button
             type="button"

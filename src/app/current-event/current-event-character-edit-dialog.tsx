@@ -42,7 +42,8 @@ export function CurrentEventCharacterEditDialog(
   }, [isOpen, character.name]);
 
   const trimmedEditedCharacterName = editedCharacterName.trim();
-  const isCharacterNameUnchanged = trimmedEditedCharacterName === character.name;
+  const isCharacterNameUnchanged =
+    trimmedEditedCharacterName === character.name;
   const isSaveCharacterEditsDisabled =
     isSavingCharacterEdits === true ||
     trimmedEditedCharacterName.length === 0 ||

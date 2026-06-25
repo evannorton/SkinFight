@@ -17,6 +17,10 @@ import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
 import { EventTeamsEditor } from "~/app/dashboard/event-teams-editor";
+import {
+  EventWeeksEditor,
+  type DraftWeekForEvent,
+} from "~/app/dashboard/event-weeks-editor";
 import { formatDateToDatetimeLocalValue } from "~/lib/format-date-to-datetime-local-value";
 import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -54,14 +58,26 @@ function EventAdminCard(props: EventAdminCardProps): ReactElement {
           {formattedDateTime}
         </Text>
         {eventRow.eventTeams.length > 0 && (
-          <Text as="p" size="2" color="gray" mb="4" style={{ display: "block" }}>
+          <Text
+            as="p"
+            size="2"
+            color="gray"
+            mb="4"
+            style={{ display: "block" }}
+          >
             {eventRow.eventTeams
               .map((eventTeamRow) => eventTeamRow.team.name)
               .join(", ")}
           </Text>
         )}
         {eventRow.eventTeams.length === 0 && (
-          <Text as="p" size="2" color="gray" mb="4" style={{ display: "block" }}>
+          <Text
+            as="p"
+            size="2"
+            color="gray"
+            mb="4"
+            style={{ display: "block" }}
+          >
             No teams
           </Text>
         )}
@@ -106,6 +122,9 @@ export function AdminEventsSection(): ReactElement {
   const [editEndDateTimeLocalInput, setEditEndDateTimeLocalInput] =
     useState<string>("");
   const [editEventTeamIds, setEditEventTeamIds] = useState<string[]>([]);
+  const [editEventDraftWeeks, setEditEventDraftWeeks] = useState<
+    DraftWeekForEvent[]
+  >([]);
   const [pendingDeleteEvent, setPendingDeleteEvent] =
     useState<EventListRow | null>(null);
 
@@ -150,6 +169,15 @@ export function AdminEventsSection(): ReactElement {
     setEditEventTeamIds(
       eventBeingEdited.eventTeams.map((eventTeamRow) => eventTeamRow.teamId),
     );
+    setEditEventDraftWeeks(
+      eventBeingEdited.weeks.map((weekRow) => ({
+        clientKey: weekRow.id,
+        themes: weekRow.themes.map((themeRow) => ({
+          clientKey: themeRow.id,
+          name: themeRow.name,
+        })),
+      })),
+    );
   }, [eventBeingEdited]);
 
   const trimmedNewEventName = newEventName.trim();
@@ -189,7 +217,12 @@ export function AdminEventsSection(): ReactElement {
             setNewEventName(event.target.value);
           }}
         />
-        <Text as="label" size="2" weight="medium" htmlFor="event-start-datetime">
+        <Text
+          as="label"
+          size="2"
+          weight="medium"
+          htmlFor="event-start-datetime"
+        >
           Start date and time
         </Text>
         <TextField.Root
@@ -363,6 +396,13 @@ export function AdminEventsSection(): ReactElement {
                 areInputsDisabled={isEventEditFormDisabled === true}
               />
             )}
+            {eventBeingEdited !== null && (
+              <EventWeeksEditor
+                draftWeeks={editEventDraftWeeks}
+                onDraftWeeksChange={setEditEventDraftWeeks}
+                areInputsDisabled={isEventEditFormDisabled === true}
+              />
+            )}
             {updateEventMutation.error !== null && (
               <Text size="2" color="red">
                 {updateEventMutation.error.message}
@@ -415,6 +455,11 @@ export function AdminEventsSection(): ReactElement {
                     date: parsedEditStartDate,
                     endDate: parsedEditEndDate,
                     teamIds: editEventTeamIds,
+                    weeks: editEventDraftWeeks.map((draftWeek) => ({
+                      themeNames: draftWeek.themes.map((draftTheme) =>
+                        draftTheme.name.trim(),
+                      ),
+                    })),
                   });
                 }}
               >

@@ -15,10 +15,46 @@ export const ATTACK_DEFEND_SHADING_POINT_VALUES: Record<
   THREE: 25,
 };
 
+export const ATTACK_DEFEND_THEME_POINT_MULTIPLIER = 1.5;
+
 export function getAttackDefendShadingPointValue(
   shading: AttackDefendShadingValue,
 ): number {
   return ATTACK_DEFEND_SHADING_POINT_VALUES[shading];
+}
+
+export function getAttackDefendPointValue(params: {
+  shading: AttackDefendShadingValue;
+  hasThemeSelected: boolean;
+}): number {
+  const basePointValue = getAttackDefendShadingPointValue(params.shading);
+  if (params.hasThemeSelected === true) {
+    return basePointValue * ATTACK_DEFEND_THEME_POINT_MULTIPLIER;
+  }
+  return basePointValue;
+}
+
+export type AttackDefendPointRow = {
+  shading: string;
+  themeId: string | null;
+};
+
+export function sumAttackDefendPointValuesFromRows(
+  attackDefendPointRows: AttackDefendPointRow[],
+): number {
+  let totalPointValue = 0;
+  for (const attackDefendPointRow of attackDefendPointRows) {
+    if (isAttackDefendShadingValue(attackDefendPointRow.shading) === false) {
+      throw new Error(
+        `Unknown attack/defend shading: ${attackDefendPointRow.shading}`,
+      );
+    }
+    totalPointValue += getAttackDefendPointValue({
+      shading: attackDefendPointRow.shading,
+      hasThemeSelected: attackDefendPointRow.themeId !== null,
+    });
+  }
+  return totalPointValue;
 }
 
 export function sumAttackDefendShadingPointValues(
@@ -32,16 +68,16 @@ export function sumAttackDefendShadingPointValues(
 }
 
 export function sumAttackDefendShadingPointValuesFromShadingRows(
-  shadingRows: { shading: string }[],
+  shadingRows: { shading: string; themeId?: string | null }[],
 ): number {
-  const shadings: AttackDefendShadingValue[] = [];
-  for (const shadingRow of shadingRows) {
-    if (isAttackDefendShadingValue(shadingRow.shading) === false) {
-      throw new Error(`Unknown attack/defend shading: ${shadingRow.shading}`);
-    }
-    shadings.push(shadingRow.shading);
-  }
-  return sumAttackDefendShadingPointValues(shadings);
+  return sumAttackDefendPointValuesFromRows(
+    shadingRows.map((shadingRow) => {
+      return {
+        shading: shadingRow.shading,
+        themeId: shadingRow.themeId ?? null,
+      };
+    }),
+  );
 }
 
 export function formatAttackDefendShadingLabel(

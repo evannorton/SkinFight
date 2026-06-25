@@ -22,13 +22,12 @@ export async function POST(request: Request): Promise<Response> {
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid form data." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid form data." }, { status: 400 });
   }
 
-  const parsedCharacterName = parseCharacterNameFieldValue(formData.get("name"));
+  const parsedCharacterName = parseCharacterNameFieldValue(
+    formData.get("name"),
+  );
   if (parsedCharacterName.isValid === false) {
     return NextResponse.json(
       { error: parsedCharacterName.errorMessage },
@@ -38,7 +37,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const eventIdFieldValue = formData.get("eventId");
   if (typeof eventIdFieldValue !== "string" || eventIdFieldValue.length === 0) {
-    return NextResponse.json({ error: "Event ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Event ID is required." },
+      { status: 400 },
+    );
   }
 
   const parsedCharacterPngUpload = await parseCharacterPngFileFieldValue(
@@ -52,10 +54,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const userId = session.user.id;
-  const eventAuthorizationResult = await authorizeUserCharacterEventParticipation({
-    userId,
-    eventId: eventIdFieldValue,
-  });
+  const eventAuthorizationResult =
+    await authorizeUserCharacterEventParticipation({
+      userId,
+      eventId: eventIdFieldValue,
+    });
   if (eventAuthorizationResult.isAuthorized === false) {
     return NextResponse.json(
       { error: eventAuthorizationResult.errorMessage },

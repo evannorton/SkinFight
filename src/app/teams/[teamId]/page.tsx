@@ -35,7 +35,10 @@ type TeamMember = {
   image: string | null;
 };
 
-function buildUserDisplayName(userName: string | null, userEmail: string | null): string {
+function buildUserDisplayName(
+  userName: string | null,
+  userEmail: string | null,
+): string {
   if (userName !== null && userName !== "") {
     return userName;
   }
@@ -95,8 +98,14 @@ export default async function TeamPage(
   }
 
   teamMembers.sort((memberA, memberB) => {
-    const nameA = buildUserDisplayName(memberA.name, memberA.email).toLowerCase();
-    const nameB = buildUserDisplayName(memberB.name, memberB.email).toLowerCase();
+    const nameA = buildUserDisplayName(
+      memberA.name,
+      memberA.email,
+    ).toLowerCase();
+    const nameB = buildUserDisplayName(
+      memberB.name,
+      memberB.email,
+    ).toLowerCase();
     if (nameA < nameB) {
       return -1;
     }

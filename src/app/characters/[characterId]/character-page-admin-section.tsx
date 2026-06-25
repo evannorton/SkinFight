@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Button,
-  Card,
-  Flex,
-  Heading,
-  Text,
-} from "@radix-ui/themes";
+import { Box, Button, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
@@ -25,7 +18,8 @@ export function CharacterPageAdminSection(
 ): ReactElement {
   const { characterId, characterName, isCharacterHidden } = props;
   const router = useRouter();
-  const [isTogglingHiddenState, setIsTogglingHiddenState] = useState<boolean>(false);
+  const [isTogglingHiddenState, setIsTogglingHiddenState] =
+    useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleToggleHiddenState = async (): Promise<void> => {

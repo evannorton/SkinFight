@@ -6,9 +6,11 @@ import { authorizeCharacterAttackDefendSubmission } from "~/server/character-att
 import {
   parseAttackDefendShadingFieldValue,
   parseCharacterPngFileFieldValue,
+  parseOptionalThemeIdFieldValue,
 } from "~/server/character-form-parsing";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import { uploadPngToBackblaze } from "~/server/backblaze-storage";
+import { validateOptionalThemeIdForEventSubmission } from "~/server/event-current-week-themes";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -27,17 +29,17 @@ export async function POST(
 
   const { characterId } = await context.params;
   if (characterId.length === 0) {
-    return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Character ID is required." },
+      { status: 400 },
+    );
   }
 
   let formData: FormData;
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid form data." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid form data." }, { status: 400 });
   }
 
   const parsedCharacterPngUpload = await parseCharacterPngFileFieldValue(
@@ -60,6 +62,14 @@ export async function POST(
     );
   }
 
+  const parsedThemeId = parseOptionalThemeIdFieldValue(formData.get("themeId"));
+  if (parsedThemeId.isValid === false) {
+    return NextResponse.json(
+      { error: parsedThemeId.errorMessage },
+      { status: 400 },
+    );
+  }
+
   const userId = session.user.id;
   const authorizationResult = await authorizeCharacterAttackDefendSubmission({
     characterId,
@@ -70,6 +80,17 @@ export async function POST(
     return NextResponse.json(
       { error: authorizationResult.errorMessage },
       { status: authorizationResult.httpStatus },
+    );
+  }
+
+  const validatedThemeId = await validateOptionalThemeIdForEventSubmission({
+    eventId: authorizationResult.eventId,
+    themeId: parsedThemeId.themeId,
+  });
+  if (validatedThemeId.isValid === false) {
+    return NextResponse.json(
+      { error: validatedThemeId.errorMessage },
+      { status: 400 },
     );
   }
 
@@ -100,6 +121,7 @@ export async function POST(
       userId,
       teamId: authorizationResult.submitterTeamId,
       eventId: authorizationResult.eventId,
+      themeId: validatedThemeId.themeId,
       file: publicFileUrl,
       shading: parsedShading.shading,
     },

@@ -95,7 +95,11 @@ export function SiteHeaderNavigation(
           </Link>
         </Heading>
         {primaryNavLinkItems.length > 0 && (
-          <Flex display={{ initial: "none", md: "flex" }} align="center" gap="4">
+          <Flex
+            display={{ initial: "none", md: "flex" }}
+            align="center"
+            gap="4"
+          >
             {primaryNavLinkItems.map((navLinkItem) => {
               return (
                 <SiteHeaderNavLink
@@ -143,7 +147,9 @@ export function SiteHeaderNavigation(
             {navLinkItems.map((navLinkItem) => {
               return (
                 <DropdownMenu.Item key={navLinkItem.href} asChild>
-                  <NextLink href={navLinkItem.href}>{navLinkItem.label}</NextLink>
+                  <NextLink href={navLinkItem.href}>
+                    {navLinkItem.label}
+                  </NextLink>
                 </DropdownMenu.Item>
               );
             })}

@@ -34,10 +34,11 @@ export async function findCharacterAuthorizedForUserCurrentTeam(params: {
     };
   }
 
-  const eventAuthorizationResult = await authorizeUserCharacterEventParticipation({
-    userId: params.userId,
-    eventId: existingCharacter.eventId,
-  });
+  const eventAuthorizationResult =
+    await authorizeUserCharacterEventParticipation({
+      userId: params.userId,
+      eventId: existingCharacter.eventId,
+    });
   if (eventAuthorizationResult.isAuthorized === false) {
     return {
       isAuthorized: false,
@@ -47,8 +48,7 @@ export async function findCharacterAuthorizedForUserCurrentTeam(params: {
   }
 
   if (
-    existingCharacter.teamId !==
-    eventAuthorizationResult.participation.teamId
+    existingCharacter.teamId !== eventAuthorizationResult.participation.teamId
   ) {
     return {
       isAuthorized: false,

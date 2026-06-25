@@ -18,7 +18,11 @@ type EventWithTeams = {
   teams: Array<{ id: string; name: string; sortOrder: number }>;
 };
 
-function buildEventDisplayName(eventName: string, eventDate: Date, eventEndDate: Date): string {
+function buildEventDisplayName(
+  eventName: string,
+  eventDate: Date,
+  eventEndDate: Date,
+): string {
   const startDateString = eventDate.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -34,30 +38,32 @@ function buildEventDisplayName(eventName: string, eventDate: Date, eventEndDate:
 }
 
 export default async function TeamsPage(): Promise<ReactElement> {
-  const [eventsWithTeamsData, teamTotalPointValuesByTeamId] = await Promise.all([
-    db.event.findMany({
-      orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        endDate: true,
-        eventTeams: {
-          orderBy: { sortOrder: "asc" },
-          select: {
-            sortOrder: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
+  const [eventsWithTeamsData, teamTotalPointValuesByTeamId] = await Promise.all(
+    [
+      db.event.findMany({
+        orderBy: { date: "desc" },
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          endDate: true,
+          eventTeams: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              sortOrder: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-    }),
-    getTeamTotalPointValuesByTeamId(),
-  ]);
+      }),
+      getTeamTotalPointValuesByTeamId(),
+    ],
+  );
 
   const eventsWithTeams: EventWithTeams[] = eventsWithTeamsData.map((event) => {
     return {
@@ -88,7 +94,11 @@ export default async function TeamsPage(): Promise<ReactElement> {
       )}
 
       {eventsWithTeams.map((event) => {
-        const eventDisplayName = buildEventDisplayName(event.name, event.date, event.endDate);
+        const eventDisplayName = buildEventDisplayName(
+          event.name,
+          event.date,
+          event.endDate,
+        );
         return (
           <Box key={event.id} mb="6">
             <Heading as="h2" size="6" mb="3">

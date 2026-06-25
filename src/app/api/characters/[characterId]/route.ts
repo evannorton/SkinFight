@@ -35,20 +35,22 @@ export async function PATCH(
 
   const { characterId } = await context.params;
   if (characterId.length === 0) {
-    return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Character ID is required." },
+      { status: 400 },
+    );
   }
 
   let formData: FormData;
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid form data." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid form data." }, { status: 400 });
   }
 
-  const parsedCharacterName = parseCharacterNameFieldValue(formData.get("name"));
+  const parsedCharacterName = parseCharacterNameFieldValue(
+    formData.get("name"),
+  );
   if (parsedCharacterName.isValid === false) {
     return NextResponse.json(
       { error: parsedCharacterName.errorMessage },
@@ -88,10 +90,7 @@ export async function PATCH(
     isCharacterNameUnchanged === true &&
     isCharacterFileReplacementRequested === false
   ) {
-    return NextResponse.json(
-      { error: "No changes to save." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "No changes to save." }, { status: 400 });
   }
 
   let replacementPublicFileUrl: string | null = null;
@@ -175,7 +174,10 @@ export async function DELETE(
 
   const { characterId } = await context.params;
   if (characterId.length === 0) {
-    return NextResponse.json({ error: "Character ID is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Character ID is required." },
+      { status: 400 },
+    );
   }
 
   const userId = session.user.id;
@@ -193,8 +195,12 @@ export async function DELETE(
 
   const existingCharacter = authorizedCharacterResult.character;
 
-  await deleteBackblazeFilesForAttacksWhere(db, { characterId: existingCharacter.id });
-  await deleteBackblazeFilesForDefendsWhere(db, { characterId: existingCharacter.id });
+  await deleteBackblazeFilesForAttacksWhere(db, {
+    characterId: existingCharacter.id,
+  });
+  await deleteBackblazeFilesForDefendsWhere(db, {
+    characterId: existingCharacter.id,
+  });
   await deleteBackblazeFilesForPublicFileUrls([existingCharacter.file]);
 
   try {

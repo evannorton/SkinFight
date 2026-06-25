@@ -10,6 +10,7 @@ export type CharacterAttackForDisplay = {
   id: string;
   fileUrl: string;
   shading: AttackDefendShadingValue;
+  themeName: string | null;
   submitterUserId: string;
   submitterDisplayName: string;
   submitterTeamId: string;
@@ -21,6 +22,7 @@ export type CharacterDefendForDisplay = {
   id: string;
   fileUrl: string;
   shading: AttackDefendShadingValue;
+  themeName: string | null;
   submitterUserId: string;
   submitterDisplayName: string;
   submitterTeamId: string;
@@ -28,9 +30,15 @@ export type CharacterDefendForDisplay = {
   isHidden: boolean;
 };
 
+export type ThemeForAttackDefendSubmission = {
+  themeId: string;
+  themeName: string;
+};
+
 export type CharacterPageForDisplay = {
   characterDetail: CharacterDetailForDisplay;
   viewerActionAvailability: CharacterPageViewerActionAvailability;
+  submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[];
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
 };

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Button,
-  Flex,
-  Select,
-  Text,
-} from "@radix-ui/themes";
+import { Box, Button, Flex, Select, Text } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 import { useState } from "react";
 
@@ -65,9 +59,7 @@ export function EventTeamsEditor(props: EventTeamsEditorProps): ReactElement {
                   type="button"
                   size="1"
                   variant="soft"
-                  disabled={
-                    isFirstTeam === true || areInputsDisabled === true
-                  }
+                  disabled={isFirstTeam === true || areInputsDisabled === true}
                   onClick={() => {
                     if (teamIndex === 0) {
                       return;
@@ -92,9 +84,7 @@ export function EventTeamsEditor(props: EventTeamsEditorProps): ReactElement {
                   type="button"
                   size="1"
                   variant="soft"
-                  disabled={
-                    isLastTeam === true || areInputsDisabled === true
-                  }
+                  disabled={isLastTeam === true || areInputsDisabled === true}
                   onClick={() => {
                     if (teamIndex === draftTeamIds.length - 1) {
                       return;
@@ -102,7 +92,10 @@ export function EventTeamsEditor(props: EventTeamsEditorProps): ReactElement {
                     const reorderedTeamIds = [...draftTeamIds];
                     const nextTeamId = reorderedTeamIds[teamIndex + 1];
                     const currentTeamId = reorderedTeamIds[teamIndex];
-                    if (nextTeamId === undefined || currentTeamId === undefined) {
+                    if (
+                      nextTeamId === undefined ||
+                      currentTeamId === undefined
+                    ) {
                       return;
                     }
                     reorderedTeamIds[teamIndex + 1] = currentTeamId;

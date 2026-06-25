@@ -33,10 +33,10 @@ export function CurrentEventCharactersSection(
   const pngFileInputRef = useRef<HTMLInputElement>(null);
   const [newCharacterName, setNewCharacterName] = useState<string>("");
   const [selectedPngFile, setSelectedPngFile] = useState<File | null>(null);
-  const [isCreatingCharacter, setIsCreatingCharacter] = useState<boolean>(false);
-  const [createCharacterErrorMessage, setCreateCharacterErrorMessage] = useState<
-    string | null
-  >(null);
+  const [isCreatingCharacter, setIsCreatingCharacter] =
+    useState<boolean>(false);
+  const [createCharacterErrorMessage, setCreateCharacterErrorMessage] =
+    useState<string | null>(null);
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(
     null,
   );
@@ -48,9 +48,8 @@ export function CurrentEventCharactersSection(
   const [deletingCharacterId, setDeletingCharacterId] = useState<string | null>(
     null,
   );
-  const [deleteCharacterErrorMessage, setDeleteCharacterErrorMessage] = useState<
-    string | null
-  >(null);
+  const [deleteCharacterErrorMessage, setDeleteCharacterErrorMessage] =
+    useState<string | null>(null);
 
   const trimmedNewCharacterName = newCharacterName.trim();
   const isCreateCharacterDisabled =
@@ -60,17 +59,21 @@ export function CurrentEventCharactersSection(
 
   const editingCharacter =
     editingCharacterId !== null
-      ? (characters.find((characterRow) => characterRow.id === editingCharacterId) ??
-        null)
+      ? (characters.find(
+          (characterRow) => characterRow.id === editingCharacterId,
+        ) ?? null)
       : null;
 
   const viewingCharacter =
     viewingCharacterId !== null
-      ? (characters.find((characterRow) => characterRow.id === viewingCharacterId) ??
-        null)
+      ? (characters.find(
+          (characterRow) => characterRow.id === viewingCharacterId,
+        ) ?? null)
       : null;
 
-  const handlePngFileInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const handlePngFileInputChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ): void => {
     const selectedFile = event.target.files?.[0] ?? null;
     setSelectedPngFile(selectedFile);
     setCreateCharacterErrorMessage(null);
@@ -325,8 +328,7 @@ export function CurrentEventCharactersSection(
               type="button"
               color="red"
               disabled={
-                pendingDeleteCharacter === null ||
-                deletingCharacterId !== null
+                pendingDeleteCharacter === null || deletingCharacterId !== null
               }
               onClick={() => {
                 void handleDeleteCharacterConfirm();
@@ -342,7 +344,12 @@ export function CurrentEventCharactersSection(
         <form onSubmit={handleCreateCharacterFormSubmit}>
           <Flex direction="column" gap="3">
             <Flex direction="column" gap="1">
-              <Text as="label" size="2" weight="medium" htmlFor="character-name">
+              <Text
+                as="label"
+                size="2"
+                weight="medium"
+                htmlFor="character-name"
+              >
                 Name
               </Text>
               <TextField.Root
@@ -358,7 +365,12 @@ export function CurrentEventCharactersSection(
             </Flex>
 
             <Flex direction="column" gap="1">
-              <Text as="label" size="2" weight="medium" htmlFor="character-png-file">
+              <Text
+                as="label"
+                size="2"
+                weight="medium"
+                htmlFor="character-png-file"
+              >
                 PNG file
               </Text>
               <input
@@ -376,10 +388,7 @@ export function CurrentEventCharactersSection(
               )}
             </Flex>
 
-            <Button
-              type="submit"
-              disabled={isCreateCharacterDisabled === true}
-            >
+            <Button type="submit" disabled={isCreateCharacterDisabled === true}>
               {isCreatingCharacter === true ? "Adding…" : "Add character"}
             </Button>
 

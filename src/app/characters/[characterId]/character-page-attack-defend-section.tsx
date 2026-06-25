@@ -8,6 +8,7 @@ import {
   Heading,
   Link,
   RadioGroup,
+  Select,
   Text,
 } from "@radix-ui/themes";
 import NextLink from "next/link";
@@ -28,13 +29,17 @@ import type {
   CharacterAttackForDisplay,
   CharacterDefendForDisplay,
   CharacterPageViewerActionAvailability,
+  ThemeForAttackDefendSubmission,
 } from "~/lib/character-page-for-display";
+
+const ATTACK_DEFEND_NO_THEME_SELECT_VALUE = "__none__";
 
 type CharacterPageAttackDefendSectionProps = {
   characterId: string;
   characterName: string;
   viewerActionAvailability: CharacterPageViewerActionAvailability;
   viewerIsAdmin: boolean;
+  submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[];
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
   initialAttackId: string | null;
@@ -48,6 +53,7 @@ type ViewingAttackOrDefend = {
   id: string;
   fileUrl: string;
   shading: AttackDefendShadingValue;
+  themeName: string | null;
   isHidden: boolean;
   submitterUserId: string;
   submitterDisplayName: string;
@@ -62,6 +68,7 @@ function buildViewingAttackFromDisplayRow(
     id: attackRow.id,
     fileUrl: attackRow.fileUrl,
     shading: attackRow.shading,
+    themeName: attackRow.themeName,
     isHidden: attackRow.isHidden === true,
     submitterUserId: attackRow.submitterUserId,
     submitterDisplayName: attackRow.submitterDisplayName,
@@ -77,6 +84,7 @@ function buildViewingDefendFromDisplayRow(
     id: defendRow.id,
     fileUrl: defendRow.fileUrl,
     shading: defendRow.shading,
+    themeName: defendRow.themeName,
     isHidden: defendRow.isHidden === true,
     submitterUserId: defendRow.submitterUserId,
     submitterDisplayName: defendRow.submitterDisplayName,
@@ -183,6 +191,7 @@ export function CharacterPageAttackDefendSection(
     characterName,
     viewerActionAvailability,
     viewerIsAdmin,
+    submissionThemesForCurrentWeek,
     attacks,
     defends,
     initialAttackId,
@@ -193,11 +202,15 @@ export function CharacterPageAttackDefendSection(
   const submissionPngFileInputRef = useRef<HTMLInputElement>(null);
   const [openSubmissionModalKind, setOpenSubmissionModalKind] =
     useState<OpenSubmissionModalKind>(null);
-  const [viewingAttackOrDefend, setViewingAttackOrDefend] = useState<ViewingAttackOrDefend>(null);
+  const [viewingAttackOrDefend, setViewingAttackOrDefend] =
+    useState<ViewingAttackOrDefend>(null);
   const [selectedSubmissionPngFile, setSelectedSubmissionPngFile] =
     useState<File | null>(null);
   const [selectedSubmissionShading, setSelectedSubmissionShading] =
     useState<AttackDefendShadingValue | null>(null);
+  const [selectedSubmissionThemeId, setSelectedSubmissionThemeId] = useState<
+    string | null
+  >(null);
   const [isSubmittingAttackOrDefend, setIsSubmittingAttackOrDefend] =
     useState<boolean>(false);
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState<
@@ -233,7 +246,10 @@ export function CharacterPageAttackDefendSection(
   const handleCloseViewingAttackOrDefendModal = (): void => {
     setViewingAttackOrDefend(null);
 
-    if (attackIdFromSearchParams === null && defendIdFromSearchParams === null) {
+    if (
+      attackIdFromSearchParams === null &&
+      defendIdFromSearchParams === null
+    ) {
       return;
     }
 
@@ -261,6 +277,7 @@ export function CharacterPageAttackDefendSection(
     setOpenSubmissionModalKind(null);
     setSelectedSubmissionPngFile(null);
     setSelectedSubmissionShading(null);
+    setSelectedSubmissionThemeId(null);
     setSubmissionErrorMessage(null);
     if (submissionPngFileInputRef.current !== null) {
       submissionPngFileInputRef.current.value = "";
@@ -290,6 +307,9 @@ export function CharacterPageAttackDefendSection(
     const submissionFormData = new FormData();
     submissionFormData.append("file", selectedSubmissionPngFile);
     submissionFormData.append("shading", selectedSubmissionShading);
+    if (selectedSubmissionThemeId !== null) {
+      submissionFormData.append("themeId", selectedSubmissionThemeId);
+    }
 
     const submissionApiPath =
       openSubmissionModalKind === "attack"
@@ -426,7 +446,9 @@ export function CharacterPageAttackDefendSection(
                         <Text key={shadingOption} as="label" size="2">
                           <Flex align="center" gap="2">
                             <RadioGroup.Item value={shadingOption} />
-                            {formatAttackDefendShadingLabelWithPointValue(shadingOption)}
+                            {formatAttackDefendShadingLabelWithPointValue(
+                              shadingOption,
+                            )}
                           </Flex>
                         </Text>
                       );
@@ -434,6 +456,57 @@ export function CharacterPageAttackDefendSection(
                   </Flex>
                 </RadioGroup.Root>
               </Flex>
+
+              {submissionThemesForCurrentWeek.length > 0 && (
+                <Flex direction="column" gap="1">
+                  <Text
+                    as="label"
+                    size="2"
+                    weight="medium"
+                    htmlFor="character-submission-theme"
+                  >
+                    Theme (optional)
+                  </Text>
+                  <Select.Root
+                    value={
+                      selectedSubmissionThemeId ??
+                      ATTACK_DEFEND_NO_THEME_SELECT_VALUE
+                    }
+                    disabled={isSubmittingAttackOrDefend === true}
+                    onValueChange={(selectedValue) => {
+                      if (
+                        selectedValue === ATTACK_DEFEND_NO_THEME_SELECT_VALUE
+                      ) {
+                        setSelectedSubmissionThemeId(null);
+                        setSubmissionErrorMessage(null);
+                        return;
+                      }
+                      setSelectedSubmissionThemeId(selectedValue);
+                      setSubmissionErrorMessage(null);
+                    }}
+                  >
+                    <Select.Trigger
+                      id="character-submission-theme"
+                      placeholder="No theme"
+                    />
+                    <Select.Content>
+                      <Select.Item value={ATTACK_DEFEND_NO_THEME_SELECT_VALUE}>
+                        No theme
+                      </Select.Item>
+                      {submissionThemesForCurrentWeek.map((themeRow) => {
+                        return (
+                          <Select.Item
+                            key={themeRow.themeId}
+                            value={themeRow.themeId}
+                          >
+                            {themeRow.themeName}
+                          </Select.Item>
+                        );
+                      })}
+                    </Select.Content>
+                  </Select.Root>
+                </Flex>
+              )}
 
               {submissionErrorMessage !== null && (
                 <Text size="2" color="red">
@@ -452,11 +525,10 @@ export function CharacterPageAttackDefendSection(
                     Cancel
                   </Button>
                 </Dialog.Close>
-                <Button
-                  type="submit"
-                  disabled={isSubmitDisabled === true}
-                >
-                  {isSubmittingAttackOrDefend === true ? "Submitting…" : "Submit"}
+                <Button type="submit" disabled={isSubmitDisabled === true}>
+                  {isSubmittingAttackOrDefend === true
+                    ? "Submitting…"
+                    : "Submit"}
                 </Button>
               </Flex>
             </Flex>
@@ -479,7 +551,10 @@ export function CharacterPageAttackDefendSection(
               <CharacterAttackOrDefendListItem
                 key={attackRow.id}
                 fileUrl={attackRow.fileUrl}
-                shadingLabel={formatAttackDefendShadingLabelWithPointValue(attackRow.shading)}
+                shadingLabel={formatAttackDefendShadingLabelWithPointValue(
+                  attackRow.shading,
+                )}
+                themeName={attackRow.themeName}
                 submitterDisplayName={attackRow.submitterDisplayName}
                 submitterTeamName={attackRow.submitterTeamName}
                 onClickSkinPreview={() => {
@@ -511,28 +586,38 @@ export function CharacterPageAttackDefendSection(
       >
         <Dialog.Content style={{ maxWidth: "min(28rem, 100vw - 2rem)" }}>
           <Dialog.Title>{characterName}</Dialog.Title>
-            
-            {viewerIsAdmin === true && viewingAttackOrDefend !== null && (
-              <AttackDefendAdminSection
-                attackOrDefendKind={viewingAttackOrDefend.kind}
-                attackOrDefendId={viewingAttackOrDefend.id}
-                isHidden={viewingAttackOrDefend.isHidden}
-                onUpdate={(newHiddenState) => {
-                  setViewingAttackOrDefend({
-                    ...viewingAttackOrDefend,
-                    isHidden: newHiddenState,
-                  });
-                  router.refresh();
-                }}
-              />
-            )}
+
+          {viewerIsAdmin === true && viewingAttackOrDefend !== null && (
+            <AttackDefendAdminSection
+              attackOrDefendKind={viewingAttackOrDefend.kind}
+              attackOrDefendId={viewingAttackOrDefend.id}
+              isHidden={viewingAttackOrDefend.isHidden}
+              onUpdate={(newHiddenState) => {
+                setViewingAttackOrDefend({
+                  ...viewingAttackOrDefend,
+                  isHidden: newHiddenState,
+                });
+                router.refresh();
+              }}
+            />
+          )}
           <Flex direction="column" gap="4">
             {viewingAttackOrDefend !== null && (
               <Text as="p" size="3">
                 <Text weight="medium">Shading: </Text>
-                {formatAttackDefendShadingLabelWithPointValue(viewingAttackOrDefend.shading)}
+                {formatAttackDefendShadingLabelWithPointValue(
+                  viewingAttackOrDefend.shading,
+                )}
               </Text>
             )}
+
+            {viewingAttackOrDefend !== null &&
+              viewingAttackOrDefend.themeName !== null && (
+                <Text as="p" size="3">
+                  <Text weight="medium">Theme: </Text>
+                  {viewingAttackOrDefend.themeName} (1.5x points)
+                </Text>
+              )}
 
             {viewingAttackOrDefend !== null && (
               <Text as="p" size="3">
@@ -561,7 +646,13 @@ export function CharacterPageAttackDefendSection(
               )}
             </Flex>
 
-            <Flex gap="3" justify="between" width="100%" align="end" wrap="wrap">
+            <Flex
+              gap="3"
+              justify="between"
+              width="100%"
+              align="end"
+              wrap="wrap"
+            >
               {viewingAttackOrDefend !== null && (
                 <CharacterAttackOrDefendCopyLinkButton
                   characterId={characterId}
@@ -585,7 +676,10 @@ export function CharacterPageAttackDefendSection(
               <CharacterAttackOrDefendListItem
                 key={defendRow.id}
                 fileUrl={defendRow.fileUrl}
-                shadingLabel={formatAttackDefendShadingLabelWithPointValue(defendRow.shading)}
+                shadingLabel={formatAttackDefendShadingLabelWithPointValue(
+                  defendRow.shading,
+                )}
+                themeName={defendRow.themeName}
                 submitterDisplayName={defendRow.submitterDisplayName}
                 submitterTeamName={defendRow.submitterTeamName}
                 onClickSkinPreview={() => {
@@ -613,7 +707,8 @@ function AttackDefendAdminSection(
   props: AttackDefendAdminSectionProps,
 ): ReactElement {
   const { attackOrDefendKind, attackOrDefendId, isHidden, onUpdate } = props;
-  const [isTogglingHiddenState, setIsTogglingHiddenState] = useState<boolean>(false);
+  const [isTogglingHiddenState, setIsTogglingHiddenState] =
+    useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const itemTypeName = attackOrDefendKind === "attack" ? "attack" : "defend";
@@ -704,6 +799,7 @@ function AttackDefendAdminSection(
 type CharacterAttackOrDefendListItemProps = {
   fileUrl: string;
   shadingLabel: string;
+  themeName: string | null;
   submitterDisplayName: string;
   submitterTeamName: string;
   onClickSkinPreview: () => void;
@@ -715,10 +811,13 @@ function CharacterAttackOrDefendListItem(
   const {
     fileUrl,
     shadingLabel,
+    themeName,
     submitterDisplayName,
     submitterTeamName,
     onClickSkinPreview,
   } = props;
+
+  const themeSummaryText = themeName !== null ? ` · Theme ${themeName}` : "";
 
   return (
     <Flex
@@ -763,6 +862,7 @@ function CharacterAttackOrDefendListItem(
         </Text>
         <Text size="2" color="gray">
           {submitterTeamName} · Shading {shadingLabel}
+          {themeSummaryText}
         </Text>
       </Flex>
     </Flex>
