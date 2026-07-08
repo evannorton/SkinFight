@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, adminProcedure } from "~/server/api/trpc";
 import { deleteBackblazeFilesForEventUploads } from "~/server/character-backblaze-cleanup";
+import { regenerateEventBountiesForEvent } from "~/server/event-bounty";
 
 const eventNameSchema = z.string().min(1, "Name is required.").max(200);
 
@@ -59,6 +60,18 @@ const eventListInclude = {
     include: {
       themes: {
         orderBy: { sortOrder: "asc" as const },
+      },
+    },
+  },
+  eventBounties: {
+    orderBy: { createdAt: "asc" as const },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
       },
     },
   },
@@ -221,6 +234,29 @@ export const eventRouter = createTRPCRouter({
       await deleteBackblazeFilesForEventUploads(ctx.db, input.id);
       await ctx.db.event.delete({
         where: { id: input.id },
+      });
+    }),
+
+  regenerateBounties: adminProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existingEvent = await ctx.db.event.findUnique({
+        where: { id: input.id },
+      });
+      if (existingEvent === null) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Event not found.",
+        });
+      }
+      await regenerateEventBountiesForEvent(input.id);
+      return ctx.db.event.findUniqueOrThrow({
+        where: { id: input.id },
+        include: eventListInclude,
       });
     }),
 });

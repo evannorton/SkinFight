@@ -27,6 +27,19 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 type EventListRow = RouterOutputs["event"]["list"][number];
 
+function buildEventBountyUserDisplayName(
+  userName: string | null,
+  userEmail: string | null,
+): string {
+  if (userName !== null && userName !== "") {
+    return userName;
+  }
+  if (userEmail !== null) {
+    return userEmail;
+  }
+  return "Unknown User";
+}
+
 type EventAdminCardProps = {
   eventRow: EventListRow;
   onEditRequested: (eventRow: EventListRow) => void;
@@ -155,6 +168,14 @@ export function AdminEventsSection(): ReactElement {
     },
   });
 
+  const regenerateEventBountiesMutation =
+    api.event.regenerateBounties.useMutation({
+      onSuccess: async (updatedEventRow) => {
+        await utils.event.list.invalidate();
+        setEventBeingEdited(updatedEventRow);
+      },
+    });
+
   useEffect(() => {
     if (eventBeingEdited === null) {
       return;
@@ -189,7 +210,9 @@ export function AdminEventsSection(): ReactElement {
     isEventCreateFormDisabled === true;
 
   const trimmedEditEventName = editEventName.trim();
-  const isEventEditFormDisabled = updateEventMutation.isPending === true;
+  const isEventEditFormDisabled =
+    updateEventMutation.isPending === true ||
+    regenerateEventBountiesMutation.isPending === true;
   const isSaveEditDisabled =
     eventBeingEdited === null ||
     trimmedEditEventName.length === 0 ||
@@ -402,6 +425,49 @@ export function AdminEventsSection(): ReactElement {
                 onDraftWeeksChange={setEditEventDraftWeeks}
                 areInputsDisabled={isEventEditFormDisabled === true}
               />
+            )}
+            {eventBeingEdited !== null && (
+              <Box>
+                <Text as="p" size="2" weight="medium" mb="2">
+                  Bounty
+                </Text>
+                {eventBeingEdited.eventBounties.length === 0 && (
+                  <Text as="p" size="2" color="gray" mb="2">
+                    No bounty targets yet.
+                  </Text>
+                )}
+                {eventBeingEdited.eventBounties.length > 0 && (
+                  <Flex direction="column" gap="1" mb="2">
+                    {eventBeingEdited.eventBounties.map((eventBountyRow) => (
+                      <Text key={eventBountyRow.id} as="p" size="2">
+                        {buildEventBountyUserDisplayName(
+                          eventBountyRow.user.name,
+                          eventBountyRow.user.email,
+                        )}
+                      </Text>
+                    ))}
+                  </Flex>
+                )}
+                <Button
+                  type="button"
+                  variant="soft"
+                  disabled={isEventEditFormDisabled === true}
+                  onClick={() => {
+                    regenerateEventBountiesMutation.mutate({
+                      id: eventBeingEdited.id,
+                    });
+                  }}
+                >
+                  {regenerateEventBountiesMutation.isPending === true
+                    ? "Regenerating bounty…"
+                    : "Regenerate bounty"}
+                </Button>
+                {regenerateEventBountiesMutation.error !== null && (
+                  <Text size="2" color="red" mt="2">
+                    {regenerateEventBountiesMutation.error.message}
+                  </Text>
+                )}
+              </Box>
             )}
             {updateEventMutation.error !== null && (
               <Text size="2" color="red">

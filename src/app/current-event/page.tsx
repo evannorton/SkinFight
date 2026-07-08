@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
 
 import { HomeNextEventSection } from "~/app/_components/home-next-event-section";
+import { CurrentEventBountySection } from "~/app/current-event/current-event-bounty-section";
 import { CurrentEventCharactersSection } from "~/app/current-event/current-event-characters-section";
 import { CurrentEventParticipationSection } from "~/app/current-event/current-event-participation-section";
 import { CurrentEventTeamsSection } from "~/app/current-event/current-event-teams-section";
@@ -11,6 +12,7 @@ import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-displa
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { getCurrentOngoingEventWithTeams } from "~/server/event-for-display";
+import { getEventBountyUsersForDisplay } from "~/server/event-bounty";
 import { getCurrentEventWeekForDisplay } from "~/server/event-current-week-themes";
 import { getEventTeamTotalPointValuesByTeamId } from "~/server/team-point-values";
 
@@ -28,6 +30,9 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
   const currentEventWeekForDisplay = await getCurrentEventWeekForDisplay({
     eventId: currentOngoingEventWithTeams.eventId,
   });
+  const eventBountyUsers = await getEventBountyUsersForDisplay(
+    currentOngoingEventWithTeams.eventId,
+  );
 
   const isUserSignedIn = session !== null;
 
@@ -89,6 +94,10 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
       <CurrentEventTeamsSection
         teams={currentOngoingEventWithTeams.teams}
         teamTotalPointValuesByTeamId={eventTeamTotalPointValuesByTeamId}
+      />
+      <CurrentEventBountySection
+        eventId={currentOngoingEventWithTeams.eventId}
+        bountyUsers={eventBountyUsers}
       />
       <CurrentEventParticipationSection
         isUserSignedIn={isUserSignedIn}
