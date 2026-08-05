@@ -18,13 +18,44 @@ export type CharactersGridEventFilterOption = {
 
 export const CHARACTERS_GRID_ALL_FILTER_VALUE = "__all__";
 
-export function parseCharactersGridFilterValues(
+export function resolveCharactersGridFilterValues(
   searchParams: Record<string, string | string[] | undefined>,
+  currentOngoingEventId: string | null,
 ): CharactersGridFilterValues {
+  const teamId = parseCharactersGridSearchParamString(searchParams.teamId);
+  const userId = parseCharactersGridSearchParamString(searchParams.userId);
+  const rawEventIdSearchParam = parseCharactersGridSearchParamString(
+    searchParams.eventId,
+  );
+
+  if (rawEventIdSearchParam === CHARACTERS_GRID_ALL_FILTER_VALUE) {
+    return {
+      teamId,
+      eventId: null,
+      userId,
+    };
+  }
+
+  if (rawEventIdSearchParam !== null) {
+    return {
+      teamId,
+      eventId: rawEventIdSearchParam,
+      userId,
+    };
+  }
+
+  if (currentOngoingEventId !== null) {
+    return {
+      teamId,
+      eventId: currentOngoingEventId,
+      userId,
+    };
+  }
+
   return {
-    teamId: parseCharactersGridSearchParamString(searchParams.teamId),
-    eventId: parseCharactersGridSearchParamString(searchParams.eventId),
-    userId: parseCharactersGridSearchParamString(searchParams.userId),
+    teamId,
+    eventId: null,
+    userId,
   };
 }
 
@@ -53,13 +84,11 @@ export function buildCharactersPagePath(
   }
   if (filterValues.eventId !== null) {
     urlSearchParams.set("eventId", filterValues.eventId);
+  } else {
+    urlSearchParams.set("eventId", CHARACTERS_GRID_ALL_FILTER_VALUE);
   }
   if (filterValues.userId !== null) {
     urlSearchParams.set("userId", filterValues.userId);
   }
-  const queryString = urlSearchParams.toString();
-  if (queryString.length === 0) {
-    return "/characters";
-  }
-  return `/characters?${queryString}`;
+  return `/characters?${urlSearchParams.toString()}`;
 }

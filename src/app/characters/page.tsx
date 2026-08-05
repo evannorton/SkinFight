@@ -5,13 +5,14 @@ import type { ReactElement } from "react";
 
 import { UserRole } from "../../../generated/prisma";
 import { CharactersGridFilters } from "~/app/characters/characters-grid-filters";
-import { parseCharactersGridFilterValues } from "~/lib/characters-grid-filters";
+import { resolveCharactersGridFilterValues } from "~/lib/characters-grid-filters";
 import {
   buildCharactersGridCharacterWhereInput,
   buildUserDisplayNameForCharactersGridFilter,
 } from "~/server/characters-grid-query";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { getCurrentOngoingEventId } from "~/server/event-for-display";
 
 export const metadata: Metadata = {
   title: "Characters · SkinFight",
@@ -29,7 +30,11 @@ export default async function CharactersPage(
   const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
 
   const searchParams = await props.searchParams;
-  const filterValues = parseCharactersGridFilterValues(searchParams);
+  const currentOngoingEventId = await getCurrentOngoingEventId();
+  const filterValues = resolveCharactersGridFilterValues(
+    searchParams,
+    currentOngoingEventId,
+  );
   const characterWhereInput =
     buildCharactersGridCharacterWhereInput(filterValues);
 
@@ -97,7 +102,14 @@ export default async function CharactersPage(
     }),
     teamFilterOptionQuery,
     db.event.findMany({
-      where: { characters: { some: {} } },
+      where: {
+        OR: [
+          { characters: { some: {} } },
+          ...(filterValues.eventId !== null
+            ? [{ id: filterValues.eventId }]
+            : []),
+        ],
+      },
       orderBy: { date: "desc" },
       select: {
         id: true,
@@ -140,6 +152,7 @@ export default async function CharactersPage(
         teamFilterOptions={teamFilterOptionRows}
         eventFilterOptions={eventFilterOptions}
         activeUserFilterDisplayName={activeUserFilterDisplayName}
+        defaultEventId={currentOngoingEventId}
       />
 
       {characterRows.length === 0 && (

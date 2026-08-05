@@ -40,6 +40,22 @@ function buildEventForHighlightDisplay(
   };
 }
 
+export async function getCurrentOngoingEventId(): Promise<string | null> {
+  const now = new Date();
+  const currentOngoingEvent = await db.event.findFirst({
+    where: {
+      date: { lte: now },
+      endDate: { gte: now },
+    },
+    orderBy: { date: "asc" },
+    select: { id: true },
+  });
+  if (currentOngoingEvent === null) {
+    return null;
+  }
+  return currentOngoingEvent.id;
+}
+
 export async function getCurrentOngoingEventForDisplay(): Promise<EventForHighlightDisplay | null> {
   const now = new Date();
   const currentOngoingEvent = await db.event.findFirst({

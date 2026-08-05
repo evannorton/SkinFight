@@ -19,6 +19,7 @@ type CharactersGridFiltersProps = {
   teamFilterOptions: CharactersGridTeamFilterOption[];
   eventFilterOptions: CharactersGridEventFilterOption[];
   activeUserFilterDisplayName: string | null;
+  defaultEventId: string | null;
 };
 
 type CharactersGridEventFilterItemProps = {
@@ -49,13 +50,18 @@ export function CharactersGridFilters(
     teamFilterOptions,
     eventFilterOptions,
     activeUserFilterDisplayName,
+    defaultEventId,
   } = props;
   const router = useRouter();
 
+  const isEventFilterAtDefault =
+    defaultEventId !== null
+      ? filterValues.eventId === defaultEventId
+      : filterValues.eventId === null;
   const hasActiveFilters =
     filterValues.teamId !== null ||
-    filterValues.eventId !== null ||
-    filterValues.userId !== null;
+    filterValues.userId !== null ||
+    isEventFilterAtDefault === false;
 
   const navigateWithFilterValues = (
     updatedFilterValues: CharactersGridFilterValues,
