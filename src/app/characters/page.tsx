@@ -8,7 +8,6 @@ import { CharactersGridFilters } from "~/app/characters/characters-grid-filters"
 import { parseCharactersGridFilterValues } from "~/lib/characters-grid-filters";
 import {
   buildCharactersGridCharacterWhereInput,
-  buildEventDisplayNameForCharactersGridFilter,
   buildUserDisplayNameForCharactersGridFilter,
 } from "~/server/characters-grid-query";
 import { auth } from "~/server/auth";
@@ -120,11 +119,9 @@ export default async function CharactersPage(
   const eventFilterOptions = eventFilterOptionRows.map((eventRow) => {
     return {
       id: eventRow.id,
-      displayName: buildEventDisplayNameForCharactersGridFilter({
-        eventName: eventRow.name,
-        eventDate: eventRow.date,
-        eventEndDate: eventRow.endDate,
-      }),
+      eventName: eventRow.name,
+      startsAtIso: eventRow.date.toISOString(),
+      endsAtIso: eventRow.endDate.toISOString(),
     };
   });
 

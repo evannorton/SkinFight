@@ -83,9 +83,6 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
         eventDisplayName={currentOngoingEventWithTeams.displayName}
         eventStartsAtIso={currentOngoingEventWithTeams.startsAtIso}
         eventEndsAtIso={currentOngoingEventWithTeams.endsAtIso}
-        eventDateTimeRangeLabel={
-          currentOngoingEventWithTeams.dateTimeRangeLabel
-        }
         shouldShowLinkToCurrentEventPage={false}
       />
       <CurrentEventWeekSection

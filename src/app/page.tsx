@@ -16,7 +16,6 @@ export default async function Home(): Promise<ReactElement> {
           eventDisplayName={featuredEvent.displayName}
           eventStartsAtIso={featuredEvent.startsAtIso}
           eventEndsAtIso={featuredEvent.endsAtIso}
-          eventDateTimeRangeLabel={featuredEvent.dateTimeRangeLabel}
           shouldShowLinkToCurrentEventPage={
             featuredEvent.eventHighlightMode === "current"
           }

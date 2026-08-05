@@ -2,7 +2,6 @@ export type EventForHighlightDisplay = {
   displayName: string;
   startsAtIso: string;
   endsAtIso: string;
-  dateTimeRangeLabel: string;
 };
 
 export type HomeEventHighlightMode = "current" | "next";

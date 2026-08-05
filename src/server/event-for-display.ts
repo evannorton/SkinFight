@@ -4,7 +4,6 @@ import type {
   EventForHighlightDisplay,
   FeaturedEventForHomePage,
 } from "~/lib/event-for-display-types";
-import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
 import { db } from "~/server/db";
 
 export type {
@@ -38,10 +37,6 @@ function buildEventForHighlightDisplay(
     displayName,
     startsAtIso: eventRow.date.toISOString(),
     endsAtIso: eventRow.endDate.toISOString(),
-    dateTimeRangeLabel: formatEventDateTimeRangeLabel(
-      eventRow.date,
-      eventRow.endDate,
-    ),
   };
 }
 

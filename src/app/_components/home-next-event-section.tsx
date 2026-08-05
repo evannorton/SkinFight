@@ -5,6 +5,8 @@ import NextLink from "next/link";
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
 
+import { useBrowserEventDateTimeRangeLabel } from "~/lib/use-browser-event-datetime-range-label";
+
 type HomeEventHighlightMode = "current" | "next";
 
 type HomeNextEventSectionProps = {
@@ -12,7 +14,6 @@ type HomeNextEventSectionProps = {
   eventDisplayName: string;
   eventStartsAtIso: string;
   eventEndsAtIso: string;
-  eventDateTimeRangeLabel: string;
   shouldShowLinkToCurrentEventPage: boolean;
 };
 
@@ -50,7 +51,6 @@ export function HomeNextEventSection(
     eventDisplayName,
     eventStartsAtIso,
     eventEndsAtIso,
-    eventDateTimeRangeLabel,
     shouldShowLinkToCurrentEventPage,
   } = props;
 
@@ -65,6 +65,10 @@ export function HomeNextEventSection(
   const countdownCompleteLabel =
     eventHighlightMode === "current" ? "Ending now" : "Starting now";
 
+  const eventDateTimeRangeLabel = useBrowserEventDateTimeRangeLabel(
+    eventStartsAtIso,
+    eventEndsAtIso,
+  );
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(() => Date.now());
 
   useEffect(() => {

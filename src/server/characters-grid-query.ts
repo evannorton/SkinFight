@@ -3,7 +3,6 @@ import "server-only";
 import type { Prisma } from "../../generated/prisma";
 
 import type { CharactersGridFilterValues } from "~/lib/characters-grid-filters";
-import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
 
 export function buildCharactersGridCharacterWhereInput(
   filterValues: CharactersGridFilterValues,
@@ -33,19 +32,4 @@ export function buildUserDisplayNameForCharactersGridFilter(params: {
     return params.userEmail;
   }
   return "Unknown user";
-}
-
-export function buildEventDisplayNameForCharactersGridFilter(params: {
-  eventName: string;
-  eventDate: Date;
-  eventEndDate: Date;
-}): string {
-  const trimmedEventName = params.eventName.trim();
-  const eventTitle =
-    trimmedEventName.length > 0 ? trimmedEventName : "Unnamed event";
-  const eventDateTimeRangeLabel = formatEventDateTimeRangeLabel(
-    params.eventDate,
-    params.eventEndDate,
-  );
-  return `${eventTitle} (${eventDateTimeRangeLabel})`;
 }

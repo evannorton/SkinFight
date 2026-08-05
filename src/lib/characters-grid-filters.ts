@@ -11,7 +11,9 @@ export type CharactersGridTeamFilterOption = {
 
 export type CharactersGridEventFilterOption = {
   id: string;
-  displayName: string;
+  eventName: string;
+  startsAtIso: string;
+  endsAtIso: string;
 };
 
 export const CHARACTERS_GRID_ALL_FILTER_VALUE = "__all__";

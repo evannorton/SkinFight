@@ -22,7 +22,7 @@ import {
   type DraftWeekForEvent,
 } from "~/app/dashboard/event-weeks-editor";
 import { formatDateToDatetimeLocalValue } from "~/lib/format-date-to-datetime-local-value";
-import { formatEventDateTimeRangeLabel } from "~/lib/format-event-datetime-range-label";
+import { useBrowserEventDateTimeRangeLabel } from "~/lib/use-browser-event-datetime-range-label";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type EventListRow = RouterOutputs["event"]["list"][number];
@@ -48,9 +48,9 @@ type EventAdminCardProps = {
 
 function EventAdminCard(props: EventAdminCardProps): ReactElement {
   const { eventRow, onEditRequested, onDeleteRequested } = props;
-  const formattedDateTime = formatEventDateTimeRangeLabel(
-    new Date(eventRow.date),
-    new Date(eventRow.endDate),
+  const formattedDateTime = useBrowserEventDateTimeRangeLabel(
+    eventRow.date,
+    eventRow.endDate,
   );
   const displayTitle =
     eventRow.name.trim().length > 0 ? eventRow.name : "Untitled";

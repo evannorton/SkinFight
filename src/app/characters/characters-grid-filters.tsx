@@ -12,6 +12,7 @@ import {
   type CharactersGridFilterValues,
   type CharactersGridTeamFilterOption,
 } from "~/lib/characters-grid-filters";
+import { useBrowserEventDisplayNameWithDateTimeRange } from "~/lib/use-browser-event-display-name-with-datetime-range";
 
 type CharactersGridFiltersProps = {
   filterValues: CharactersGridFilterValues;
@@ -19,6 +20,26 @@ type CharactersGridFiltersProps = {
   eventFilterOptions: CharactersGridEventFilterOption[];
   activeUserFilterDisplayName: string | null;
 };
+
+type CharactersGridEventFilterItemProps = {
+  eventFilterOption: CharactersGridEventFilterOption;
+};
+
+function CharactersGridEventFilterItem(
+  props: CharactersGridEventFilterItemProps,
+): ReactElement {
+  const { eventFilterOption } = props;
+  const eventDisplayName = useBrowserEventDisplayNameWithDateTimeRange({
+    eventName: eventFilterOption.eventName,
+    startsAt: eventFilterOption.startsAtIso,
+    endsAt: eventFilterOption.endsAtIso,
+    emptyNameFallback: "Unnamed event",
+  });
+
+  return (
+    <Select.Item value={eventFilterOption.id}>{eventDisplayName}</Select.Item>
+  );
+}
 
 export function CharactersGridFilters(
   props: CharactersGridFiltersProps,
@@ -85,12 +106,10 @@ export function CharactersGridFilters(
               </Select.Item>
               {eventFilterOptions.map((eventFilterOption) => {
                 return (
-                  <Select.Item
+                  <CharactersGridEventFilterItem
                     key={eventFilterOption.id}
-                    value={eventFilterOption.id}
-                  >
-                    {eventFilterOption.displayName}
-                  </Select.Item>
+                    eventFilterOption={eventFilterOption}
+                  />
                 );
               })}
             </Select.Content>
