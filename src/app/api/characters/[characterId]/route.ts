@@ -7,11 +7,6 @@ import {
   parseCharacterNameFieldValue,
   parseOptionalCharacterPngFileFieldValue,
 } from "~/server/character-form-parsing";
-import {
-  deleteBackblazeFilesForAttacksWhere,
-  deleteBackblazeFilesForDefendsWhere,
-  deleteBackblazeFilesForPublicFileUrls,
-} from "~/server/character-backblaze-cleanup";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import {
   deletePngFromBackblazeByPublicFileUrl,
@@ -161,58 +156,4 @@ export async function PATCH(
   }
 
   return NextResponse.json({ character: updatedCharacter }, { status: 200 });
-}
-
-export async function DELETE(
-  _request: Request,
-  context: CharacterRouteContext,
-): Promise<Response> {
-  const session = await auth();
-  if (session === null) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
-  const { characterId } = await context.params;
-  if (characterId.length === 0) {
-    return NextResponse.json(
-      { error: "Character ID is required." },
-      { status: 400 },
-    );
-  }
-
-  const userId = session.user.id;
-  const authorizedCharacterResult =
-    await findCharacterAuthorizedForUserCurrentTeam({
-      characterId,
-      userId,
-    });
-  if (authorizedCharacterResult.isAuthorized === false) {
-    return NextResponse.json(
-      { error: authorizedCharacterResult.errorMessage },
-      { status: authorizedCharacterResult.httpStatus },
-    );
-  }
-
-  const existingCharacter = authorizedCharacterResult.character;
-
-  await deleteBackblazeFilesForAttacksWhere(db, {
-    characterId: existingCharacter.id,
-  });
-  await deleteBackblazeFilesForDefendsWhere(db, {
-    characterId: existingCharacter.id,
-  });
-  await deleteBackblazeFilesForPublicFileUrls([existingCharacter.file]);
-
-  try {
-    await db.character.delete({
-      where: { id: existingCharacter.id },
-    });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to delete character." },
-      { status: 500 },
-    );
-  }
-
-  return NextResponse.json({ success: true }, { status: 200 });
 }
