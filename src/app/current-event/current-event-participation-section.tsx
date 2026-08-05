@@ -75,7 +75,7 @@ export function CurrentEventParticipationSection(
             You must sign in to participate in this event.
           </Text>
           <Link asChild size="3" weight="medium" underline="hover">
-            <NextLink href="/api/auth/signin">Sign in</NextLink>
+            <NextLink href="/signin">Sign in</NextLink>
           </Link>
         </>
       )}
