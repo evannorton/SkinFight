@@ -25,7 +25,6 @@ export function CurrentEventParticipationSection(
     string | null
   >(null);
   const [joiningTeamId, setJoiningTeamId] = useState<string | null>(null);
-  const [isLeavingTeam, setIsLeavingTeam] = useState<boolean>(false);
 
   const joinEventParticipationMutation =
     api.eventParticipation.join.useMutation({
@@ -40,23 +39,9 @@ export function CurrentEventParticipationSection(
       },
     });
 
-  const leaveEventTeamMutation = api.eventParticipation.leaveTeam.useMutation({
-    onSuccess: async () => {
-      setParticipationErrorMessage(null);
-      setIsLeavingTeam(false);
-      router.refresh();
-    },
-    onError: (error) => {
-      setParticipationErrorMessage(error.message);
-      setIsLeavingTeam(false);
-    },
-  });
-
   const isParticipationActionPending =
     joiningTeamId !== null ||
-    isLeavingTeam === true ||
-    joinEventParticipationMutation.isPending === true ||
-    leaveEventTeamMutation.isPending === true;
+    joinEventParticipationMutation.isPending === true;
 
   const userParticipationTeamName =
     userParticipationTeamId !== null
@@ -80,26 +65,9 @@ export function CurrentEventParticipationSection(
         </>
       )}
       {isUserSignedIn === true && userParticipationTeamId !== null && (
-        <Flex direction="column" gap="3" align="start">
-          <Text as="p" size="3" color="gray">
-            You are participating on {userParticipationTeamName ?? "your team"}.
-          </Text>
-          <Button
-            type="button"
-            variant="soft"
-            color="red"
-            disabled={isParticipationActionPending === true}
-            onClick={() => {
-              setParticipationErrorMessage(null);
-              setIsLeavingTeam(true);
-              leaveEventTeamMutation.mutate({ eventId });
-            }}
-          >
-            {isLeavingTeam === true && leaveEventTeamMutation.isPending === true
-              ? "Leaving…"
-              : "Leave team"}
-          </Button>
-        </Flex>
+        <Text as="p" size="3" color="gray">
+          You are participating on {userParticipationTeamName ?? "your team"}.
+        </Text>
       )}
       {isUserSignedIn === true &&
         userParticipationTeamId === null &&

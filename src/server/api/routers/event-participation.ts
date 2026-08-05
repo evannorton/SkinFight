@@ -87,42 +87,4 @@ export const eventParticipationRouter = createTRPCRouter({
         },
       });
     }),
-
-  leaveTeam: protectedProcedure
-    .input(
-      z.object({
-        eventId: z.string().min(1),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await assertEventIsCurrentlyOngoing(ctx.db, input.eventId);
-
-      const existingParticipation = await ctx.db.eventParticipation.findUnique({
-        where: {
-          userId_eventId: {
-            userId,
-            eventId: input.eventId,
-          },
-        },
-      });
-      if (existingParticipation === null) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "You are not participating in this event.",
-        });
-      }
-      if (existingParticipation.teamId === null) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You are not on a team for this event.",
-        });
-      }
-
-      return ctx.db.eventParticipation.update({
-        where: { id: existingParticipation.id },
-        data: { teamId: null },
-      });
-    }),
 });
