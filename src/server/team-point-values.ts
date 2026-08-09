@@ -2,8 +2,10 @@ import "server-only";
 
 import {
   getAttackDefendPointValue,
+  getDefendPointValue,
   isAttackDefendShadingValue,
   sumAttackDefendPointValuesFromRows,
+  sumDefendPointValuesFromRows,
 } from "~/lib/attack-defend-shading";
 import { db } from "~/server/db";
 
@@ -14,7 +16,7 @@ const visibleAttackDefendWhereInput = {
   },
 };
 
-function addAttackDefendRowPointValueToTeamTotalPointValues(
+function addAttackRowPointValueToTeamTotalPointValues(
   teamTotalPointValuesByTeamId: Map<string, number>,
   teamId: string,
   shading: string,
@@ -31,6 +33,29 @@ function addAttackDefendRowPointValueToTeamTotalPointValues(
       getAttackDefendPointValue({
         shading,
         hasThemeSelected: themeId !== null,
+      }),
+  );
+}
+
+function addDefendRowPointValueToTeamTotalPointValues(
+  teamTotalPointValuesByTeamId: Map<string, number>,
+  teamId: string,
+  shading: string,
+  themeId: string | null,
+  createdAt: Date,
+): void {
+  if (isAttackDefendShadingValue(shading) === false) {
+    throw new Error(`Unknown attack/defend shading: ${shading}`);
+  }
+  const currentTeamTotalPointValue =
+    teamTotalPointValuesByTeamId.get(teamId) ?? 0;
+  teamTotalPointValuesByTeamId.set(
+    teamId,
+    currentTeamTotalPointValue +
+      getDefendPointValue({
+        shading,
+        hasThemeSelected: themeId !== null,
+        submittedAt: createdAt,
       }),
   );
 }
@@ -55,14 +80,15 @@ export async function getTeamTotalPointValue(teamId: string): Promise<number> {
       select: {
         shading: true,
         themeId: true,
+        createdAt: true,
       },
     }),
   ]);
 
-  return sumAttackDefendPointValuesFromRows([
-    ...teamAttackRows,
-    ...teamDefendRows,
-  ]);
+  return (
+    sumAttackDefendPointValuesFromRows(teamAttackRows) +
+    sumDefendPointValuesFromRows(teamDefendRows)
+  );
 }
 
 export async function getEventTeamTotalPointValuesByTeamId(
@@ -91,12 +117,13 @@ export async function getEventTeamTotalPointValuesByTeamId(
         teamId: true,
         shading: true,
         themeId: true,
+        createdAt: true,
       },
     }),
   ]);
 
   for (const teamAttackRow of teamAttackRows) {
-    addAttackDefendRowPointValueToTeamTotalPointValues(
+    addAttackRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamAttackRow.teamId,
       teamAttackRow.shading,
@@ -105,11 +132,12 @@ export async function getEventTeamTotalPointValuesByTeamId(
   }
 
   for (const teamDefendRow of teamDefendRows) {
-    addAttackDefendRowPointValueToTeamTotalPointValues(
+    addDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamDefendRow.teamId,
       teamDefendRow.shading,
       teamDefendRow.themeId,
+      teamDefendRow.createdAt,
     );
   }
 
@@ -136,12 +164,13 @@ export async function getTeamTotalPointValuesByTeamId(): Promise<
         teamId: true,
         shading: true,
         themeId: true,
+        createdAt: true,
       },
     }),
   ]);
 
   for (const teamAttackRow of teamAttackRows) {
-    addAttackDefendRowPointValueToTeamTotalPointValues(
+    addAttackRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamAttackRow.teamId,
       teamAttackRow.shading,
@@ -150,11 +179,12 @@ export async function getTeamTotalPointValuesByTeamId(): Promise<
   }
 
   for (const teamDefendRow of teamDefendRows) {
-    addAttackDefendRowPointValueToTeamTotalPointValues(
+    addDefendRowPointValueToTeamTotalPointValues(
       teamTotalPointValuesByTeamId,
       teamDefendRow.teamId,
       teamDefendRow.shading,
       teamDefendRow.themeId,
+      teamDefendRow.createdAt,
     );
   }
 

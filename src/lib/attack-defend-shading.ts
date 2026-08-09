@@ -17,6 +17,10 @@ export const ATTACK_DEFEND_SHADING_POINT_VALUES: Record<
 
 export const ATTACK_DEFEND_THEME_POINT_MULTIPLIER = 1.5;
 
+export const DEFEND_NON_FRIDAY_POINT_MULTIPLIER = 0.5;
+
+export const SKINFIGHT_SCORING_TIME_ZONE = "America/Chicago";
+
 export function getAttackDefendShadingPointValue(
   shading: AttackDefendShadingValue,
 ): number {
@@ -34,9 +38,38 @@ export function getAttackDefendPointValue(params: {
   return basePointValue;
 }
 
+export function isDefendFullPointsDay(date: Date): boolean {
+  const weekdayShortName = new Intl.DateTimeFormat("en-US", {
+    timeZone: SKINFIGHT_SCORING_TIME_ZONE,
+    weekday: "short",
+  }).format(date);
+  return weekdayShortName === "Fri";
+}
+
+export function getDefendPointValue(params: {
+  shading: AttackDefendShadingValue;
+  hasThemeSelected: boolean;
+  submittedAt: Date;
+}): number {
+  const fullPointValue = getAttackDefendPointValue({
+    shading: params.shading,
+    hasThemeSelected: params.hasThemeSelected,
+  });
+  if (isDefendFullPointsDay(params.submittedAt) === true) {
+    return fullPointValue;
+  }
+  return fullPointValue * DEFEND_NON_FRIDAY_POINT_MULTIPLIER;
+}
+
 export type AttackDefendPointRow = {
   shading: string;
   themeId: string | null;
+};
+
+export type DefendPointRow = {
+  shading: string;
+  themeId: string | null;
+  createdAt: Date;
 };
 
 export function sumAttackDefendPointValuesFromRows(
@@ -52,6 +85,23 @@ export function sumAttackDefendPointValuesFromRows(
     totalPointValue += getAttackDefendPointValue({
       shading: attackDefendPointRow.shading,
       hasThemeSelected: attackDefendPointRow.themeId !== null,
+    });
+  }
+  return totalPointValue;
+}
+
+export function sumDefendPointValuesFromRows(
+  defendPointRows: DefendPointRow[],
+): number {
+  let totalPointValue = 0;
+  for (const defendPointRow of defendPointRows) {
+    if (isAttackDefendShadingValue(defendPointRow.shading) === false) {
+      throw new Error(`Unknown attack/defend shading: ${defendPointRow.shading}`);
+    }
+    totalPointValue += getDefendPointValue({
+      shading: defendPointRow.shading,
+      hasThemeSelected: defendPointRow.themeId !== null,
+      submittedAt: defendPointRow.createdAt,
     });
   }
   return totalPointValue;
@@ -94,9 +144,12 @@ export function formatAttackDefendShadingLabel(
 
 export function formatAttackDefendShadingLabelWithPointValue(
   shading: AttackDefendShadingValue,
+  pointMultiplier?: number,
 ): string {
   const shadingLabel = formatAttackDefendShadingLabel(shading);
-  const pointValue = getAttackDefendShadingPointValue(shading);
+  const resolvedPointMultiplier = pointMultiplier ?? 1;
+  const pointValue =
+    getAttackDefendShadingPointValue(shading) * resolvedPointMultiplier;
   return `${shadingLabel} (${pointValue} points)`;
 }
 

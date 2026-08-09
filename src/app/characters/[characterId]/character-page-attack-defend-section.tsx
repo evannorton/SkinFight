@@ -19,8 +19,10 @@ import { useEffect, useRef, useState } from "react";
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import {
   ATTACK_DEFEND_SHADING_OPTIONS,
+  DEFEND_NON_FRIDAY_POINT_MULTIPLIER,
   formatAttackDefendShadingLabelWithPointValue,
   isAttackDefendShadingValue,
+  isDefendFullPointsDay,
   type AttackDefendShadingValue,
 } from "~/lib/attack-defend-shading";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
@@ -350,10 +352,22 @@ export function CharacterPageAttackDefendSection(
   const submissionModalTitle =
     openSubmissionModalKind === "attack" ? "Submit attack" : "Submit defend";
 
+  const isDefendSubmissionOnFullPointsDay =
+    openSubmissionModalKind === "defend" &&
+    isDefendFullPointsDay(new Date()) === true;
+
+  const defendSubmissionPointMultiplier =
+    openSubmissionModalKind === "defend" &&
+    isDefendSubmissionOnFullPointsDay === false
+      ? DEFEND_NON_FRIDAY_POINT_MULTIPLIER
+      : 1;
+
   const submissionModalDescription =
     openSubmissionModalKind === "attack"
       ? "Upload a PNG image for this attack."
-      : "Upload a PNG image for this defend.";
+      : isDefendSubmissionOnFullPointsDay === true
+        ? "Upload a PNG image for this defend. Defends are worth half points every day except Friday - today is Friday, so this defend counts for full points."
+        : "Upload a PNG image for this defend. Defends are worth half points every day except Friday - today is not Friday, so this defend counts for half points.";
 
   return (
     <Box mt="8">
@@ -448,6 +462,7 @@ export function CharacterPageAttackDefendSection(
                             <RadioGroup.Item value={shadingOption} />
                             {formatAttackDefendShadingLabelWithPointValue(
                               shadingOption,
+                              defendSubmissionPointMultiplier,
                             )}
                           </Flex>
                         </Text>
