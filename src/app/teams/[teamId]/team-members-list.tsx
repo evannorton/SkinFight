@@ -11,6 +11,7 @@ type TeamMember = {
   name: string | null;
   email: string | null;
   image: string | null;
+  contributedPointValue: number;
 };
 
 type TeamMembersListProps = {
@@ -82,14 +83,25 @@ export function TeamMembersList(props: TeamMembersListProps): ReactElement {
                 style={{ color: "inherit" }}
               >
                 <NextLink href={charactersPagePath}>
-                  <Flex align="center" gap="3" style={{ cursor: "pointer" }}>
-                    <Avatar
-                      size="3"
-                      src={member.image ?? undefined}
-                      fallback={displayName.charAt(0).toUpperCase()}
-                      radius="full"
-                    />
-                    <Text size="3">{displayName}</Text>
+                  <Flex
+                    align="center"
+                    justify="between"
+                    gap="3"
+                    maxWidth="23.25rem"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Flex align="center" gap="3">
+                      <Avatar
+                        size="3"
+                        src={member.image ?? undefined}
+                        fallback={displayName.charAt(0).toUpperCase()}
+                        radius="full"
+                      />
+                      <Text size="3">{displayName}</Text>
+                    </Flex>
+                    <Text size="3" color="gray">
+                      {member.contributedPointValue} points
+                    </Text>
                   </Flex>
                 </NextLink>
               </Link>

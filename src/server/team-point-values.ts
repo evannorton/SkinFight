@@ -60,6 +60,50 @@ function addDefendRowPointValueToTeamTotalPointValues(
   );
 }
 
+function addAttackRowPointValueToUserTotalPointValues(
+  userTotalPointValuesByUserId: Map<string, number>,
+  userId: string,
+  shading: string,
+  themeId: string | null,
+): void {
+  if (isAttackDefendShadingValue(shading) === false) {
+    throw new Error(`Unknown attack/defend shading: ${shading}`);
+  }
+  const currentUserTotalPointValue =
+    userTotalPointValuesByUserId.get(userId) ?? 0;
+  userTotalPointValuesByUserId.set(
+    userId,
+    currentUserTotalPointValue +
+      getAttackDefendPointValue({
+        shading,
+        hasThemeSelected: themeId !== null,
+      }),
+  );
+}
+
+function addDefendRowPointValueToUserTotalPointValues(
+  userTotalPointValuesByUserId: Map<string, number>,
+  userId: string,
+  shading: string,
+  themeId: string | null,
+  createdAt: Date,
+): void {
+  if (isAttackDefendShadingValue(shading) === false) {
+    throw new Error(`Unknown attack/defend shading: ${shading}`);
+  }
+  const currentUserTotalPointValue =
+    userTotalPointValuesByUserId.get(userId) ?? 0;
+  userTotalPointValuesByUserId.set(
+    userId,
+    currentUserTotalPointValue +
+      getDefendPointValue({
+        shading,
+        hasThemeSelected: themeId !== null,
+        submittedAt: createdAt,
+      }),
+  );
+}
+
 export async function getTeamTotalPointValue(teamId: string): Promise<number> {
   const [teamAttackRows, teamDefendRows] = await Promise.all([
     db.attack.findMany({
@@ -128,6 +172,59 @@ export async function getEventUserTeamTotalPointValue(params: {
     sumAttackDefendPointValuesFromRows(userAttackRows) +
     sumDefendPointValuesFromRows(userDefendRows)
   );
+}
+
+export async function getTeamUserTotalPointValuesByUserId(
+  teamId: string,
+): Promise<Map<string, number>> {
+  const userTotalPointValuesByUserId = new Map<string, number>();
+
+  const [teamAttackRows, teamDefendRows] = await Promise.all([
+    db.attack.findMany({
+      where: {
+        teamId: teamId,
+        ...visibleAttackDefendWhereInput,
+      },
+      select: {
+        userId: true,
+        shading: true,
+        themeId: true,
+      },
+    }),
+    db.defend.findMany({
+      where: {
+        teamId: teamId,
+        ...visibleAttackDefendWhereInput,
+      },
+      select: {
+        userId: true,
+        shading: true,
+        themeId: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  for (const teamAttackRow of teamAttackRows) {
+    addAttackRowPointValueToUserTotalPointValues(
+      userTotalPointValuesByUserId,
+      teamAttackRow.userId,
+      teamAttackRow.shading,
+      teamAttackRow.themeId,
+    );
+  }
+
+  for (const teamDefendRow of teamDefendRows) {
+    addDefendRowPointValueToUserTotalPointValues(
+      userTotalPointValuesByUserId,
+      teamDefendRow.userId,
+      teamDefendRow.shading,
+      teamDefendRow.themeId,
+      teamDefendRow.createdAt,
+    );
+  }
+
+  return userTotalPointValuesByUserId;
 }
 
 export async function getEventTeamTotalPointValuesByTeamId(

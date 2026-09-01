@@ -7,7 +7,10 @@ import type { ReactElement } from "react";
 import { TeamMembersList } from "~/app/teams/[teamId]/team-members-list";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { db } from "~/server/db";
-import { getTeamTotalPointValue } from "~/server/team-point-values";
+import {
+  getTeamTotalPointValue,
+  getTeamUserTotalPointValuesByUserId,
+} from "~/server/team-point-values";
 
 type TeamPageProps = {
   params: Promise<{ teamId: string }>;
@@ -33,6 +36,7 @@ type TeamMember = {
   name: string | null;
   email: string | null;
   image: string | null;
+  contributedPointValue: number;
 };
 
 function buildUserDisplayName(
@@ -54,28 +58,30 @@ export default async function TeamPage(
   const params = await props.params;
   const teamId = params.teamId;
 
-  const [team, teamTotalPointValue] = await Promise.all([
-    db.team.findUnique({
-      where: { id: teamId },
-      select: {
-        id: true,
-        name: true,
-        eventParticipations: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
+  const [team, teamTotalPointValue, teamUserTotalPointValuesByUserId] =
+    await Promise.all([
+      db.team.findUnique({
+        where: { id: teamId },
+        select: {
+          id: true,
+          name: true,
+          eventParticipations: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                },
               },
             },
           },
         },
-      },
-    }),
-    getTeamTotalPointValue(teamId),
-  ]);
+      }),
+      getTeamTotalPointValue(teamId),
+      getTeamUserTotalPointValuesByUserId(teamId),
+    ]);
 
   if (team === null) {
     notFound();
@@ -93,6 +99,8 @@ export default async function TeamPage(
         name: participation.user.name,
         email: participation.user.email,
         image: participation.user.image,
+        contributedPointValue:
+          teamUserTotalPointValuesByUserId.get(participation.user.id) ?? 0,
       });
     }
   }
