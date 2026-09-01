@@ -91,6 +91,45 @@ export async function getTeamTotalPointValue(teamId: string): Promise<number> {
   );
 }
 
+export async function getEventUserTeamTotalPointValue(params: {
+  eventId: string;
+  userId: string;
+  teamId: string;
+}): Promise<number> {
+  const [userAttackRows, userDefendRows] = await Promise.all([
+    db.attack.findMany({
+      where: {
+        eventId: params.eventId,
+        userId: params.userId,
+        teamId: params.teamId,
+        ...visibleAttackDefendWhereInput,
+      },
+      select: {
+        shading: true,
+        themeId: true,
+      },
+    }),
+    db.defend.findMany({
+      where: {
+        eventId: params.eventId,
+        userId: params.userId,
+        teamId: params.teamId,
+        ...visibleAttackDefendWhereInput,
+      },
+      select: {
+        shading: true,
+        themeId: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  return (
+    sumAttackDefendPointValuesFromRows(userAttackRows) +
+    sumDefendPointValuesFromRows(userDefendRows)
+  );
+}
+
 export async function getEventTeamTotalPointValuesByTeamId(
   eventId: string,
 ): Promise<Map<string, number>> {

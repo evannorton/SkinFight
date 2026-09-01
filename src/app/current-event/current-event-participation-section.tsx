@@ -14,12 +14,19 @@ type CurrentEventParticipationSectionProps = {
   eventId: string;
   teams: CurrentEventTeamForParticipation[];
   userParticipationTeamId: string | null;
+  userContributedPointValue: number | null;
 };
 
 export function CurrentEventParticipationSection(
   props: CurrentEventParticipationSectionProps,
 ): ReactElement {
-  const { isUserSignedIn, eventId, teams, userParticipationTeamId } = props;
+  const {
+    isUserSignedIn,
+    eventId,
+    teams,
+    userParticipationTeamId,
+    userContributedPointValue,
+  } = props;
   const router = useRouter();
   const [participationErrorMessage, setParticipationErrorMessage] = useState<
     string | null
@@ -49,6 +56,14 @@ export function CurrentEventParticipationSection(
           ?.teamName ?? null)
       : null;
 
+  let participationStatusMessage: string | null = null;
+  if (isUserSignedIn === true && userParticipationTeamId !== null) {
+    participationStatusMessage = `You are participating on ${userParticipationTeamName ?? "your team"}.`;
+    if (userContributedPointValue !== null) {
+      participationStatusMessage = `You are participating on ${userParticipationTeamName ?? "your team"}. You have contributed ${userContributedPointValue} points to your team.`;
+    }
+  }
+
   return (
     <Box mt="6">
       <Heading as="h2" size="5" weight="bold" mb="3">
@@ -64,9 +79,9 @@ export function CurrentEventParticipationSection(
           </Link>
         </>
       )}
-      {isUserSignedIn === true && userParticipationTeamId !== null && (
+      {participationStatusMessage !== null && (
         <Text as="p" size="3" color="gray">
-          You are participating on {userParticipationTeamName ?? "your team"}.
+          {participationStatusMessage}
         </Text>
       )}
       {isUserSignedIn === true &&

@@ -14,7 +14,10 @@ import { db } from "~/server/db";
 import { getCurrentOngoingEventWithTeams } from "~/server/event-for-display";
 import { getEventBountyUsersForDisplay } from "~/server/event-bounty";
 import { getCurrentEventWeekForDisplay } from "~/server/event-current-week-themes";
-import { getEventTeamTotalPointValuesByTeamId } from "~/server/team-point-values";
+import {
+  getEventTeamTotalPointValuesByTeamId,
+  getEventUserTeamTotalPointValue,
+} from "~/server/team-point-values";
 
 export default async function CurrentEventPage(): Promise<ReactElement> {
   const session = await auth();
@@ -37,6 +40,7 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
   const isUserSignedIn = session !== null;
 
   let userParticipationTeamId: string | null = null;
+  let userContributedPointValue: number | null = null;
   let userCharactersForEvent: CurrentEventCharacterForDisplay[] = [];
   if (session !== null) {
     const existingParticipation = await db.eventParticipation.findUnique({
@@ -53,19 +57,28 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
     }
 
     if (userParticipationTeamId !== null) {
-      const characterRows = await db.character.findMany({
-        where: {
-          userId: session.user.id,
-          eventId: currentOngoingEventWithTeams.eventId,
-          teamId: userParticipationTeamId,
-        },
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          name: true,
-          file: true,
-        },
-      });
+      const [characterRows, fetchedUserContributedPointValue] =
+        await Promise.all([
+          db.character.findMany({
+            where: {
+              userId: session.user.id,
+              eventId: currentOngoingEventWithTeams.eventId,
+              teamId: userParticipationTeamId,
+            },
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              name: true,
+              file: true,
+            },
+          }),
+          getEventUserTeamTotalPointValue({
+            eventId: currentOngoingEventWithTeams.eventId,
+            userId: session.user.id,
+            teamId: userParticipationTeamId,
+          }),
+        ]);
+      userContributedPointValue = fetchedUserContributedPointValue;
       userCharactersForEvent = characterRows.map((characterRow) => {
         return {
           id: characterRow.id,
@@ -101,6 +114,7 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
         eventId={currentOngoingEventWithTeams.eventId}
         teams={currentOngoingEventWithTeams.teams}
         userParticipationTeamId={userParticipationTeamId}
+        userContributedPointValue={userContributedPointValue}
       />
       {userParticipationTeamId !== null && (
         <CurrentEventCharactersSection
