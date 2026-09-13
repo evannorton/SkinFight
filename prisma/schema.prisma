@@ -9,6 +9,7 @@ generator client {
 enum UserRole {
     USER
     ADMIN
+    MODERATOR
 }
 
 enum AttackDefendShading {

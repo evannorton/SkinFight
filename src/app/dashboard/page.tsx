@@ -7,7 +7,10 @@ import { AdminEventsSection } from "~/app/dashboard/admin-events-section";
 import { AdminHiddenAttacksSection } from "~/app/dashboard/admin-hidden-attacks-section";
 import { AdminHiddenCharactersSection } from "~/app/dashboard/admin-hidden-characters-section";
 import { AdminHiddenDefendsSection } from "~/app/dashboard/admin-hidden-defends-section";
+import { AdminPromoteModeratorSection } from "~/app/dashboard/admin-promote-moderator-section";
+import { AdminStaffSection } from "~/app/dashboard/admin-staff-section";
 import { AdminTeamsSection } from "~/app/dashboard/admin-teams-section";
+import { hasAdminPrivileges, isAdminRole } from "~/lib/user-role";
 import { auth } from "~/server/auth";
 
 export default async function AdminDashboardPage(): Promise<ReactElement> {
@@ -15,9 +18,13 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
   if (session === null) {
     redirect("/signin");
   }
-  if (session.user.role !== UserRole.ADMIN) {
+  if (hasAdminPrivileges(session.user.role) === false) {
     redirect("/");
   }
+
+  const sessionUserIsAdmin = isAdminRole(session.user.role);
+  const sessionUserRoleLabel =
+    session.user.role === UserRole.MODERATOR ? "moderator" : "admin";
 
   return (
     <Box px="6" py="6">
@@ -26,10 +33,13 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
       </Heading>
       <Text size="3" color="gray">
         Signed in as{" "}
-        {session.user.name ?? session.user.email ?? session.user.id} (admin).
+        {session.user.name ?? session.user.email ?? session.user.id} (
+        {sessionUserRoleLabel}).
       </Text>
       <AdminEventsSection />
       <AdminTeamsSection />
+      <AdminStaffSection canManageModerators={sessionUserIsAdmin} />
+      {sessionUserIsAdmin === true && <AdminPromoteModeratorSection />}
       <AdminHiddenCharactersSection />
       <AdminHiddenAttacksSection />
       <AdminHiddenDefendsSection />

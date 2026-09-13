@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { UserRole } from "../../../../../../generated/prisma";
+import { hasAdminPrivileges } from "~/lib/user-role";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -17,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (hasAdminPrivileges(session.user.role) === false) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 

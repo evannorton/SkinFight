@@ -11,7 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { UserRole } from "../../../generated/prisma";
+import { hasAdminPrivileges, isAdminRole } from "~/lib/user-role";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -134,7 +134,14 @@ export const protectedProcedure = t.procedure
   });
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.session.user.role !== UserRole.ADMIN) {
+  if (hasAdminPrivileges(ctx.session.user.role) === false) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({ ctx });
+});
+
+export const adminOnlyProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (isAdminRole(ctx.session.user.role) === false) {
     throw new TRPCError({ code: "FORBIDDEN" });
   }
   return next({ ctx });

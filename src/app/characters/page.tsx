@@ -2,10 +2,10 @@ import { Box, Text } from "@radix-ui/themes";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
 
-import { UserRole } from "../../../generated/prisma";
 import { CharactersGrid } from "~/app/characters/characters-grid";
 import { CharactersGridFilters } from "~/app/characters/characters-grid-filters";
 import { resolveCharactersGridFilterValues } from "~/lib/characters-grid-filters";
+import { hasAdminPrivileges } from "~/lib/user-role";
 import {
   buildCharactersGridCharacterWhereInput,
   buildUserDisplayNameForCharactersGridFilter,
@@ -27,7 +27,7 @@ export default async function CharactersPage(
 ): Promise<ReactElement> {
   const session = await auth();
   const viewerUserId = session?.user.id ?? null;
-  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
+  const viewerIsAdmin = hasAdminPrivileges(session?.user.role);
 
   const searchParams = await props.searchParams;
   const currentOngoingEventId = await getCurrentOngoingEventId();

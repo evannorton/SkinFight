@@ -37,6 +37,9 @@ function buildSiteHeaderNavLinkItems(
   if (props.isUserSignedIn === true && props.isSessionUserAdmin === true) {
     navLinkItems.push({ href: "/dashboard", label: "Dashboard" });
   }
+  if (props.isUserSignedIn === true) {
+    navLinkItems.push({ href: "/profile", label: "Profile" });
+  }
   if (props.isUserSignedIn === false) {
     navLinkItems.push({ href: "/signin", label: "Sign in" });
   }

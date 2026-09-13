@@ -4,11 +4,11 @@ import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 
-import { UserRole } from "../../../../generated/prisma";
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import { CharacterPageAttackDefendSection } from "~/app/characters/[characterId]/character-page-attack-defend-section";
 import { CharacterPageAdminSection } from "~/app/characters/[characterId]/character-page-admin-section";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
+import { hasAdminPrivileges } from "~/lib/user-role";
 import { auth } from "~/server/auth";
 import { getCharacterPageForDisplay } from "~/server/character-page-data";
 
@@ -41,7 +41,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { characterId } = await props.params;
   const session = await auth();
-  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
+  const viewerIsAdmin = hasAdminPrivileges(session?.user.role);
   const characterPageForDisplay = await getCharacterPageForDisplay({
     characterId,
     viewerUserId: session?.user.id ?? null,
@@ -67,7 +67,7 @@ export default async function CharacterDetailPage(
     searchParams.defendID,
   );
   const session = await auth();
-  const viewerIsAdmin = session?.user.role === UserRole.ADMIN;
+  const viewerIsAdmin = hasAdminPrivileges(session?.user.role);
   const characterPageForDisplay = await getCharacterPageForDisplay({
     characterId,
     viewerUserId: session?.user.id ?? null,
