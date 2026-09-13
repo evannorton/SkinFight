@@ -328,8 +328,8 @@ export function CharacterPageAttackDefendSection(
         const errorMessage = await parseJsonApiErrorMessage(
           submissionResponse,
           openSubmissionModalKind === "attack"
-            ? "Failed to submit attack."
-            : "Failed to submit defend.",
+            ? "Failed to submit enemy team attack."
+            : "Failed to submit friendly team Attack.",
         );
         setSubmissionErrorMessage(errorMessage);
         setIsSubmittingAttackOrDefend(false);
@@ -342,15 +342,17 @@ export function CharacterPageAttackDefendSection(
     } catch {
       setSubmissionErrorMessage(
         openSubmissionModalKind === "attack"
-          ? "Failed to submit attack."
-          : "Failed to submit defend.",
+          ? "Failed to submit enemy team attack."
+          : "Failed to submit friendly team Attack.",
       );
       setIsSubmittingAttackOrDefend(false);
     }
   };
 
   const submissionModalTitle =
-    openSubmissionModalKind === "attack" ? "Submit attack" : "Submit defend";
+    openSubmissionModalKind === "attack"
+      ? "Submit enemy team attack"
+      : "Submit friendly team Attack";
 
   const isDefendSubmissionOnFullPointsDay =
     openSubmissionModalKind === "defend" &&
@@ -364,10 +366,10 @@ export function CharacterPageAttackDefendSection(
 
   const submissionModalDescription =
     openSubmissionModalKind === "attack"
-      ? "Upload a PNG image for this attack."
+      ? "Upload a PNG image for this enemy team attack."
       : isDefendSubmissionOnFullPointsDay === true
-        ? "Upload a PNG image for this defend. Defends are worth half points every day except Friday - today is Friday, so this defend counts for full points."
-        : "Upload a PNG image for this defend. Defends are worth half points every day except Friday - today is not Friday, so this defend counts for half points.";
+        ? "Upload a PNG image for this friendly team Attack. Friendly team Attacks are worth half points every day except Friday - today is Friday, so this friendly team Attack counts for full points."
+        : "Upload a PNG image for this friendly team Attack. Friendly team Attacks are worth half points every day except Friday - today is not Friday, so this friendly team Attack counts for half points.";
 
   return (
     <Box mt="8">
@@ -382,7 +384,7 @@ export function CharacterPageAttackDefendSection(
                 setOpenSubmissionModalKind("attack");
               }}
             >
-              Attack
+              Enemy team attack
             </Button>
           )}
           {viewerActionAvailability.canShowDefendButton === true && (
@@ -394,7 +396,7 @@ export function CharacterPageAttackDefendSection(
                 setOpenSubmissionModalKind("defend");
               }}
             >
-              Defend
+              Friendly team Attack
             </Button>
           )}
         </Flex>
@@ -552,11 +554,11 @@ export function CharacterPageAttackDefendSection(
       </Dialog.Root>
 
       <Heading as="h2" size="5" weight="bold" mb="3">
-        Attacks
+        Enemy team attacks
       </Heading>
       {attacks.length === 0 && (
         <Text as="p" size="3" color="gray" mb="6">
-          No attacks yet.
+          No enemy team attacks yet.
         </Text>
       )}
       {attacks.length > 0 && (
@@ -584,11 +586,11 @@ export function CharacterPageAttackDefendSection(
       )}
 
       <Heading as="h2" size="5" weight="bold" mb="3">
-        Defends
+        Friendly team Attacks
       </Heading>
       {defends.length === 0 && (
         <Text as="p" size="3" color="gray">
-          No defends yet.
+          No friendly team Attacks yet.
         </Text>
       )}
       <Dialog.Root
@@ -726,7 +728,10 @@ function AttackDefendAdminSection(
     useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const itemTypeName = attackOrDefendKind === "attack" ? "attack" : "defend";
+  const itemTypeName =
+    attackOrDefendKind === "attack"
+      ? "enemy team attack"
+      : "friendly team Attack";
   const apiEndpoint =
     attackOrDefendKind === "attack"
       ? `/api/attacks/${attackOrDefendId}/hide`

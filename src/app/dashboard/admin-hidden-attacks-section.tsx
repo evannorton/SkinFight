@@ -35,12 +35,12 @@ export async function AdminHiddenAttacksSection(): Promise<ReactElement> {
     <Box mt="6">
       <Separator size="4" mb="6" />
       <Heading as="h3" size="5" weight="bold" mb="3">
-        Hidden attacks
+        Hidden enemy team attacks
       </Heading>
 
       {hiddenAttackRows.length === 0 && (
         <Text size="2" color="gray">
-          No hidden attacks.
+          No hidden enemy team attacks.
         </Text>
       )}
 

@@ -24,7 +24,7 @@ export async function POST(
   const { defendId } = await context.params;
   if (defendId.length === 0) {
     return NextResponse.json(
-      { error: "Defend ID is required." },
+      { error: "Friendly team Attack ID is required." },
       { status: 400 },
     );
   }
@@ -59,7 +59,10 @@ export async function POST(
   });
 
   if (existingDefend === null) {
-    return NextResponse.json({ error: "Defend not found." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Friendly team Attack not found." },
+      { status: 404 },
+    );
   }
 
   try {
@@ -69,7 +72,7 @@ export async function POST(
     });
   } catch {
     return NextResponse.json(
-      { error: "Failed to update defend." },
+      { error: "Failed to update friendly team Attack." },
       { status: 500 },
     );
   }

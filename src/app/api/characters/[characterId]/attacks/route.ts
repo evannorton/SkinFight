@@ -110,7 +110,7 @@ export async function POST(
     });
   } catch {
     return NextResponse.json(
-      { error: "Failed to upload attack image." },
+      { error: "Failed to upload enemy team attack image." },
       { status: 500 },
     );
   }

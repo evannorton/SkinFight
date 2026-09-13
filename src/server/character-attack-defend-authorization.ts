@@ -53,7 +53,8 @@ export async function authorizeCharacterAttackDefendSubmission(params: {
     if (isCharacterOnSubmitterTeam === true) {
       return {
         isAuthorized: false,
-        errorMessage: "You cannot attack a character on your own team.",
+        errorMessage:
+          "You cannot submit an enemy team attack on a character on your own team.",
         httpStatus: 400,
       };
     }
@@ -63,14 +64,16 @@ export async function authorizeCharacterAttackDefendSubmission(params: {
     if (isCharacterOnSubmitterTeam === false) {
       return {
         isAuthorized: false,
-        errorMessage: "You can only defend characters on your team.",
+        errorMessage:
+          "You can only submit friendly team Attacks on characters on your team.",
         httpStatus: 400,
       };
     }
     if (existingCharacter.userId === params.userId) {
       return {
         isAuthorized: false,
-        errorMessage: "You cannot defend a character you created.",
+        errorMessage:
+          "You cannot submit a friendly team Attack on a character you created.",
         httpStatus: 400,
       };
     }

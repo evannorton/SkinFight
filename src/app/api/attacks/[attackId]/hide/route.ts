@@ -24,7 +24,7 @@ export async function POST(
   const { attackId } = await context.params;
   if (attackId.length === 0) {
     return NextResponse.json(
-      { error: "Attack ID is required." },
+      { error: "Enemy team attack ID is required." },
       { status: 400 },
     );
   }
@@ -59,7 +59,10 @@ export async function POST(
   });
 
   if (existingAttack === null) {
-    return NextResponse.json({ error: "Attack not found." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Enemy team attack not found." },
+      { status: 404 },
+    );
   }
 
   try {
@@ -69,7 +72,7 @@ export async function POST(
     });
   } catch {
     return NextResponse.json(
-      { error: "Failed to update attack." },
+      { error: "Failed to update enemy team attack." },
       { status: 500 },
     );
   }
