@@ -7,6 +7,8 @@ import { authorizeCharacterAttackDefendSubmission } from "~/server/character-att
 import {
   parseAttackDefendShadingFieldValue,
   parseCharacterPngFileFieldValue,
+  parseOptionalDescriptionFieldValue,
+  parseOptionalExternalSkinUrlFieldValue,
   parseOptionalThemeIdFieldValue,
 } from "~/server/character-form-parsing";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
@@ -71,6 +73,26 @@ export async function POST(
     );
   }
 
+  const parsedDescription = parseOptionalDescriptionFieldValue(
+    formData.get("description"),
+  );
+  if (parsedDescription.isValid === false) {
+    return NextResponse.json(
+      { error: parsedDescription.errorMessage },
+      { status: 400 },
+    );
+  }
+
+  const parsedExternalSkinUrl = parseOptionalExternalSkinUrlFieldValue(
+    formData.get("externalSkinUrl"),
+  );
+  if (parsedExternalSkinUrl.isValid === false) {
+    return NextResponse.json(
+      { error: parsedExternalSkinUrl.errorMessage },
+      { status: 400 },
+    );
+  }
+
   const userId = session.user.id;
   const authorizationResult = await authorizeCharacterAttackDefendSubmission({
     characterId,
@@ -126,6 +148,8 @@ export async function POST(
         eventId: authorizationResult.eventId,
         themeId: validatedThemeId.themeId,
         file: publicFileUrl,
+        description: parsedDescription.description,
+        externalSkinUrl: parsedExternalSkinUrl.externalSkinUrl,
         shading: parsedShading.shading,
       },
       select: {

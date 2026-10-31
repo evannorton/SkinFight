@@ -6,6 +6,8 @@ import { findCharacterAuthorizedForUserCurrentTeam } from "~/server/character-au
 import {
   parseCharacterNameFieldValue,
   parseOptionalCharacterPngFileFieldValue,
+  parseOptionalDescriptionFieldValue,
+  parseOptionalExternalSkinUrlFieldValue,
 } from "~/server/character-form-parsing";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import {
@@ -62,6 +64,26 @@ export async function PATCH(
     );
   }
 
+  const parsedDescription = parseOptionalDescriptionFieldValue(
+    formData.get("description"),
+  );
+  if (parsedDescription.isValid === false) {
+    return NextResponse.json(
+      { error: parsedDescription.errorMessage },
+      { status: 400 },
+    );
+  }
+
+  const parsedExternalSkinUrl = parseOptionalExternalSkinUrlFieldValue(
+    formData.get("externalSkinUrl"),
+  );
+  if (parsedExternalSkinUrl.isValid === false) {
+    return NextResponse.json(
+      { error: parsedExternalSkinUrl.errorMessage },
+      { status: 400 },
+    );
+  }
+
   const userId = session.user.id;
   const authorizedCharacterResult =
     await findCharacterAuthorizedForUserCurrentTeam({
@@ -78,11 +100,18 @@ export async function PATCH(
 
   const isCharacterNameUnchanged =
     parsedCharacterName.trimmedCharacterName === existingCharacter.name;
+  const isCharacterDescriptionUnchanged =
+    parsedDescription.description === existingCharacter.description;
+  const isCharacterExternalSkinUrlUnchanged =
+    parsedExternalSkinUrl.externalSkinUrl ===
+    existingCharacter.externalSkinUrl;
   const isCharacterFileReplacementRequested =
     parsedOptionalCharacterPngUpload.isValid === true &&
     parsedOptionalCharacterPngUpload.hasFile === true;
   if (
     isCharacterNameUnchanged === true &&
+    isCharacterDescriptionUnchanged === true &&
+    isCharacterExternalSkinUrlUnchanged === true &&
     isCharacterFileReplacementRequested === false
   ) {
     return NextResponse.json({ error: "No changes to save." }, { status: 400 });
@@ -112,12 +141,20 @@ export async function PATCH(
   }
 
   const previousPublicFileUrl = existingCharacter.file;
-  let updatedCharacter: { id: string; name: string; file: string };
+  let updatedCharacter: {
+    id: string;
+    name: string;
+    file: string;
+    description: string | null;
+    externalSkinUrl: string | null;
+  };
   try {
     updatedCharacter = await db.character.update({
       where: { id: existingCharacter.id },
       data: {
         name: parsedCharacterName.trimmedCharacterName,
+        description: parsedDescription.description,
+        externalSkinUrl: parsedExternalSkinUrl.externalSkinUrl,
         ...(replacementPublicFileUrl !== null
           ? { file: replacementPublicFileUrl }
           : {}),
@@ -126,6 +163,8 @@ export async function PATCH(
         id: true,
         name: true,
         file: true,
+        description: true,
+        externalSkinUrl: true,
       },
     });
   } catch {

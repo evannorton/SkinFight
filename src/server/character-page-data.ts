@@ -88,6 +88,8 @@ export async function getCharacterPageForDisplay(params: {
       id: true,
       name: true,
       file: true,
+      description: true,
+      externalSkinUrl: true,
       userId: true,
       teamId: true,
       eventId: true,
@@ -113,6 +115,8 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          description: true,
+          externalSkinUrl: true,
           shading: true,
           isHidden: true,
           userId: true,
@@ -140,6 +144,8 @@ export async function getCharacterPageForDisplay(params: {
         select: {
           id: true,
           file: true,
+          description: true,
+          externalSkinUrl: true,
           shading: true,
           isHidden: true,
           userId: true,
@@ -256,6 +262,8 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: attackRow.id,
         fileUrl: attackRow.file,
+        description: attackRow.description,
+        externalSkinUrl: attackRow.externalSkinUrl,
         shading: attackRow.shading,
         submitterUserId: attackRow.userId,
         submitterDisplayName: buildUserDisplayName({
@@ -289,6 +297,8 @@ export async function getCharacterPageForDisplay(params: {
       return {
         id: defendRow.id,
         fileUrl: defendRow.file,
+        description: defendRow.description,
+        externalSkinUrl: defendRow.externalSkinUrl,
         shading: defendRow.shading,
         submitterUserId: defendRow.userId,
         submitterDisplayName: buildUserDisplayName({
@@ -307,6 +317,8 @@ export async function getCharacterPageForDisplay(params: {
       id: characterRow.id,
       name: characterRow.name,
       fileUrl: characterRow.file,
+      description: characterRow.description,
+      externalSkinUrl: characterRow.externalSkinUrl,
       userId: characterRow.userId,
       userDisplayName: buildUserDisplayName({
         userName: characterRow.user.name,

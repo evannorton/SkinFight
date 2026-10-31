@@ -4,6 +4,7 @@ import { Button, Dialog, Flex } from "@radix-ui/themes";
 import type { ReactElement } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
+import { SkinMetadataDisplay } from "~/app/_components/skin-metadata-display";
 import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-display";
 
 const SKIN_VIEWER_WIDTH_PX = 320;
@@ -34,6 +35,11 @@ export function CurrentEventCharacterViewDialog(
               heightPx={SKIN_VIEWER_HEIGHT_PX}
             />
           )}
+
+          <SkinMetadataDisplay
+            description={character.description}
+            externalSkinUrl={character.externalSkinUrl}
+          />
 
           <Flex gap="3" justify="end" width="100%">
             <Dialog.Close>

@@ -9,6 +9,8 @@ export type CharacterPageViewerActionAvailability = {
 export type CharacterAttackForDisplay = {
   id: string;
   fileUrl: string;
+  description: string | null;
+  externalSkinUrl: string | null;
   shading: AttackDefendShadingValue;
   themeName: string | null;
   submitterUserId: string;
@@ -21,6 +23,8 @@ export type CharacterAttackForDisplay = {
 export type CharacterDefendForDisplay = {
   id: string;
   fileUrl: string;
+  description: string | null;
+  externalSkinUrl: string | null;
   shading: AttackDefendShadingValue;
   themeName: string | null;
   submitterUserId: string;

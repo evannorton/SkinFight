@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
+import { SkinMetadataDisplay } from "~/app/_components/skin-metadata-display";
 import { CharacterPageAttackDefendSection } from "~/app/characters/[characterId]/character-page-attack-defend-section";
 import { CharacterPageAdminSection } from "~/app/characters/[characterId]/character-page-admin-section";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
@@ -155,6 +156,10 @@ export default async function CharacterDetailPage(
         </Box>
 
         <Flex direction="column" gap="2">
+          <SkinMetadataDisplay
+            description={characterDetail.description}
+            externalSkinUrl={characterDetail.externalSkinUrl}
+          />
           <Text as="p" size="3">
             <Text weight="medium">User: </Text>
             <Link asChild underline="hover">

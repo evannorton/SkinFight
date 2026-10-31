@@ -70,6 +70,8 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
               id: true,
               name: true,
               file: true,
+              description: true,
+              externalSkinUrl: true,
             },
           }),
           getEventUserTeamTotalPointValue({
@@ -84,6 +86,8 @@ export default async function CurrentEventPage(): Promise<ReactElement> {
           id: characterRow.id,
           name: characterRow.name,
           fileUrl: characterRow.file,
+          description: characterRow.description,
+          externalSkinUrl: characterRow.externalSkinUrl,
         };
       });
     }

@@ -188,15 +188,17 @@ model EventBounty {
 }
 
 model Character {
-    id        String   @id @default(cuid())
-    name      String
-    file      String
-    userId    String
-    teamId    String
-    eventId   String
-    isHidden  Boolean  @default(false)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id              String   @id @default(cuid())
+    name            String
+    file            String
+    description     String?
+    externalSkinUrl String?
+    userId          String
+    teamId          String
+    eventId         String
+    isHidden        Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 
     user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     team    Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -210,17 +212,19 @@ model Character {
 }
 
 model Attack {
-    id          String              @id @default(cuid())
-    characterId String
-    userId      String
-    teamId      String
-    eventId     String
-    themeId     String?
-    file        String
-    shading     AttackDefendShading
-    isHidden    Boolean             @default(false)
-    createdAt   DateTime            @default(now())
-    updatedAt   DateTime            @updatedAt
+    id              String              @id @default(cuid())
+    characterId     String
+    userId          String
+    teamId          String
+    eventId         String
+    themeId         String?
+    file            String
+    description     String?
+    externalSkinUrl String?
+    shading         AttackDefendShading
+    isHidden        Boolean             @default(false)
+    createdAt       DateTime            @default(now())
+    updatedAt       DateTime            @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -236,17 +240,19 @@ model Attack {
 }
 
 model Defend {
-    id          String              @id @default(cuid())
-    characterId String
-    userId      String
-    teamId      String
-    eventId     String
-    themeId     String?
-    file        String
-    shading     AttackDefendShading
-    isHidden    Boolean             @default(false)
-    createdAt   DateTime            @default(now())
-    updatedAt   DateTime            @updatedAt
+    id              String              @id @default(cuid())
+    characterId     String
+    userId          String
+    teamId          String
+    eventId         String
+    themeId         String?
+    file            String
+    description     String?
+    externalSkinUrl String?
+    shading         AttackDefendShading
+    isHidden        Boolean             @default(false)
+    createdAt       DateTime            @default(now())
+    updatedAt       DateTime            @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)

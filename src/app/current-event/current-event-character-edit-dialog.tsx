@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { OptionalSkinMetadataFields } from "~/app/_components/optional-skin-metadata-fields";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
 import type { CurrentEventCharacterForDisplay } from "~/lib/character-for-display";
 
@@ -23,6 +24,10 @@ export function CurrentEventCharacterEditDialog(
   const [editedCharacterName, setEditedCharacterName] = useState<string>(
     character.name,
   );
+  const [editedCharacterDescription, setEditedCharacterDescription] =
+    useState<string>(character.description ?? "");
+  const [editedCharacterExternalSkinUrl, setEditedCharacterExternalSkinUrl] =
+    useState<string>(character.externalSkinUrl ?? "");
   const [selectedReplacementPngFile, setSelectedReplacementPngFile] =
     useState<File | null>(null);
   const [isSavingCharacterEdits, setIsSavingCharacterEdits] =
@@ -33,21 +38,40 @@ export function CurrentEventCharacterEditDialog(
   useEffect(() => {
     if (isOpen === true) {
       setEditedCharacterName(character.name);
+      setEditedCharacterDescription(character.description ?? "");
+      setEditedCharacterExternalSkinUrl(character.externalSkinUrl ?? "");
       setSelectedReplacementPngFile(null);
       setSaveCharacterEditsErrorMessage(null);
       if (replacementPngFileInputRef.current !== null) {
         replacementPngFileInputRef.current.value = "";
       }
     }
-  }, [isOpen, character.name]);
+  }, [
+    isOpen,
+    character.name,
+    character.description,
+    character.externalSkinUrl,
+  ]);
 
   const trimmedEditedCharacterName = editedCharacterName.trim();
+  const trimmedEditedCharacterDescription = editedCharacterDescription.trim();
+  const trimmedEditedCharacterExternalSkinUrl =
+    editedCharacterExternalSkinUrl.trim();
+  const existingCharacterDescription = character.description ?? "";
+  const existingCharacterExternalSkinUrl = character.externalSkinUrl ?? "";
   const isCharacterNameUnchanged =
     trimmedEditedCharacterName === character.name;
+  const isCharacterDescriptionUnchanged =
+    trimmedEditedCharacterDescription === existingCharacterDescription;
+  const isCharacterExternalSkinUrlUnchanged =
+    trimmedEditedCharacterExternalSkinUrl === existingCharacterExternalSkinUrl;
   const isSaveCharacterEditsDisabled =
     isSavingCharacterEdits === true ||
     trimmedEditedCharacterName.length === 0 ||
-    (isCharacterNameUnchanged === true && selectedReplacementPngFile === null);
+    (isCharacterNameUnchanged === true &&
+      isCharacterDescriptionUnchanged === true &&
+      isCharacterExternalSkinUrlUnchanged === true &&
+      selectedReplacementPngFile === null);
 
   const handleReplacementPngFileInputChange = (
     event: ChangeEvent<HTMLInputElement>,
@@ -70,6 +94,14 @@ export function CurrentEventCharacterEditDialog(
 
     const updateCharacterFormData = new FormData();
     updateCharacterFormData.append("name", trimmedEditedCharacterName);
+    updateCharacterFormData.append(
+      "description",
+      editedCharacterDescription,
+    );
+    updateCharacterFormData.append(
+      "externalSkinUrl",
+      editedCharacterExternalSkinUrl,
+    );
     if (selectedReplacementPngFile !== null) {
       updateCharacterFormData.append("file", selectedReplacementPngFile);
     }
@@ -153,6 +185,21 @@ export function CurrentEventCharacterEditDialog(
                 </Text>
               )}
             </Flex>
+
+            <OptionalSkinMetadataFields
+              idPrefix={`edit-character-${character.id}`}
+              description={editedCharacterDescription}
+              externalSkinUrl={editedCharacterExternalSkinUrl}
+              isDisabled={isSavingCharacterEdits === true}
+              onDescriptionChange={(description) => {
+                setEditedCharacterDescription(description);
+                setSaveCharacterEditsErrorMessage(null);
+              }}
+              onExternalSkinUrlChange={(externalSkinUrl) => {
+                setEditedCharacterExternalSkinUrl(externalSkinUrl);
+                setSaveCharacterEditsErrorMessage(null);
+              }}
+            />
 
             {saveCharacterEditsErrorMessage !== null && (
               <Text size="2" color="red">

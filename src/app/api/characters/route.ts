@@ -6,6 +6,8 @@ import { authorizeUserCharacterEventParticipation } from "~/server/character-eve
 import {
   parseCharacterNameFieldValue,
   parseCharacterPngFileFieldValue,
+  parseOptionalDescriptionFieldValue,
+  parseOptionalExternalSkinUrlFieldValue,
 } from "~/server/character-form-parsing";
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import { uploadCharacterPngToBackblaze } from "~/server/backblaze-storage";
@@ -53,6 +55,26 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const parsedDescription = parseOptionalDescriptionFieldValue(
+    formData.get("description"),
+  );
+  if (parsedDescription.isValid === false) {
+    return NextResponse.json(
+      { error: parsedDescription.errorMessage },
+      { status: 400 },
+    );
+  }
+
+  const parsedExternalSkinUrl = parseOptionalExternalSkinUrlFieldValue(
+    formData.get("externalSkinUrl"),
+  );
+  if (parsedExternalSkinUrl.isValid === false) {
+    return NextResponse.json(
+      { error: parsedExternalSkinUrl.errorMessage },
+      { status: 400 },
+    );
+  }
+
   const userId = session.user.id;
   const eventAuthorizationResult =
     await authorizeUserCharacterEventParticipation({
@@ -91,6 +113,8 @@ export async function POST(request: Request): Promise<Response> {
     data: {
       name: parsedCharacterName.trimmedCharacterName,
       file: publicFileUrl,
+      description: parsedDescription.description,
+      externalSkinUrl: parsedExternalSkinUrl.externalSkinUrl,
       userId,
       teamId: eventAuthorizationResult.participation.teamId,
       eventId: eventIdFieldValue,
@@ -99,6 +123,8 @@ export async function POST(request: Request): Promise<Response> {
       id: true,
       name: true,
       file: true,
+      description: true,
+      externalSkinUrl: true,
     },
   });
 

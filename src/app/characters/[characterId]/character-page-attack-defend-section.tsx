@@ -17,6 +17,8 @@ import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
+import { OptionalSkinMetadataFields } from "~/app/_components/optional-skin-metadata-fields";
+import { SkinMetadataDisplay } from "~/app/_components/skin-metadata-display";
 import {
   ATTACK_DEFEND_SHADING_OPTIONS,
   DEFEND_NON_FRIDAY_POINT_MULTIPLIER,
@@ -54,6 +56,8 @@ type ViewingAttackOrDefend = {
   kind: "attack" | "defend";
   id: string;
   fileUrl: string;
+  description: string | null;
+  externalSkinUrl: string | null;
   shading: AttackDefendShadingValue;
   themeName: string | null;
   isHidden: boolean;
@@ -69,6 +73,8 @@ function buildViewingAttackFromDisplayRow(
     kind: "attack",
     id: attackRow.id,
     fileUrl: attackRow.fileUrl,
+    description: attackRow.description,
+    externalSkinUrl: attackRow.externalSkinUrl,
     shading: attackRow.shading,
     themeName: attackRow.themeName,
     isHidden: attackRow.isHidden === true,
@@ -85,6 +91,8 @@ function buildViewingDefendFromDisplayRow(
     kind: "defend",
     id: defendRow.id,
     fileUrl: defendRow.fileUrl,
+    description: defendRow.description,
+    externalSkinUrl: defendRow.externalSkinUrl,
     shading: defendRow.shading,
     themeName: defendRow.themeName,
     isHidden: defendRow.isHidden === true,
@@ -213,6 +221,10 @@ export function CharacterPageAttackDefendSection(
   const [selectedSubmissionThemeId, setSelectedSubmissionThemeId] = useState<
     string | null
   >(null);
+  const [submissionDescription, setSubmissionDescription] =
+    useState<string>("");
+  const [submissionExternalSkinUrl, setSubmissionExternalSkinUrl] =
+    useState<string>("");
   const [isSubmittingAttackOrDefend, setIsSubmittingAttackOrDefend] =
     useState<boolean>(false);
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState<
@@ -280,6 +292,8 @@ export function CharacterPageAttackDefendSection(
     setSelectedSubmissionPngFile(null);
     setSelectedSubmissionShading(null);
     setSelectedSubmissionThemeId(null);
+    setSubmissionDescription("");
+    setSubmissionExternalSkinUrl("");
     setSubmissionErrorMessage(null);
     if (submissionPngFileInputRef.current !== null) {
       submissionPngFileInputRef.current.value = "";
@@ -309,6 +323,8 @@ export function CharacterPageAttackDefendSection(
     const submissionFormData = new FormData();
     submissionFormData.append("file", selectedSubmissionPngFile);
     submissionFormData.append("shading", selectedSubmissionShading);
+    submissionFormData.append("description", submissionDescription);
+    submissionFormData.append("externalSkinUrl", submissionExternalSkinUrl);
     if (selectedSubmissionThemeId !== null) {
       submissionFormData.append("themeId", selectedSubmissionThemeId);
     }
@@ -525,6 +541,21 @@ export function CharacterPageAttackDefendSection(
                 </Flex>
               )}
 
+              <OptionalSkinMetadataFields
+                idPrefix="character-submission"
+                description={submissionDescription}
+                externalSkinUrl={submissionExternalSkinUrl}
+                isDisabled={isSubmittingAttackOrDefend === true}
+                onDescriptionChange={(description) => {
+                  setSubmissionDescription(description);
+                  setSubmissionErrorMessage(null);
+                }}
+                onExternalSkinUrlChange={(externalSkinUrl) => {
+                  setSubmissionExternalSkinUrl(externalSkinUrl);
+                  setSubmissionErrorMessage(null);
+                }}
+              />
+
               {submissionErrorMessage !== null && (
                 <Text size="2" color="red">
                   {submissionErrorMessage}
@@ -635,6 +666,13 @@ export function CharacterPageAttackDefendSection(
                   {viewingAttackOrDefend.themeName} (1.5x points)
                 </Text>
               )}
+
+            {viewingAttackOrDefend !== null && (
+              <SkinMetadataDisplay
+                description={viewingAttackOrDefend.description}
+                externalSkinUrl={viewingAttackOrDefend.externalSkinUrl}
+              />
+            )}
 
             {viewingAttackOrDefend !== null && (
               <Text as="p" size="3">

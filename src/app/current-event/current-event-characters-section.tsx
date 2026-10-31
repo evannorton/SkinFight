@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useRef, useState } from "react";
 
+import { OptionalSkinMetadataFields } from "~/app/_components/optional-skin-metadata-fields";
 import { CurrentEventCharacterEditDialog } from "~/app/current-event/current-event-character-edit-dialog";
 import { CurrentEventCharacterViewDialog } from "~/app/current-event/current-event-character-view-dialog";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
@@ -31,6 +32,10 @@ export function CurrentEventCharactersSection(
   const router = useRouter();
   const pngFileInputRef = useRef<HTMLInputElement>(null);
   const [newCharacterName, setNewCharacterName] = useState<string>("");
+  const [newCharacterDescription, setNewCharacterDescription] =
+    useState<string>("");
+  const [newCharacterExternalSkinUrl, setNewCharacterExternalSkinUrl] =
+    useState<string>("");
   const [selectedPngFile, setSelectedPngFile] = useState<File | null>(null);
   const [isCreatingCharacter, setIsCreatingCharacter] =
     useState<boolean>(false);
@@ -89,6 +94,11 @@ export function CurrentEventCharactersSection(
     createCharacterFormData.append("name", trimmedNewCharacterName);
     createCharacterFormData.append("eventId", eventId);
     createCharacterFormData.append("file", selectedPngFile);
+    createCharacterFormData.append("description", newCharacterDescription);
+    createCharacterFormData.append(
+      "externalSkinUrl",
+      newCharacterExternalSkinUrl,
+    );
 
     try {
       const createCharacterResponse = await fetch("/api/characters", {
@@ -107,6 +117,8 @@ export function CurrentEventCharactersSection(
       }
 
       setNewCharacterName("");
+      setNewCharacterDescription("");
+      setNewCharacterExternalSkinUrl("");
       setSelectedPngFile(null);
       if (pngFileInputRef.current !== null) {
         pngFileInputRef.current.value = "";
@@ -281,6 +293,21 @@ export function CurrentEventCharactersSection(
                 </Text>
               )}
             </Flex>
+
+            <OptionalSkinMetadataFields
+              idPrefix="new-character"
+              description={newCharacterDescription}
+              externalSkinUrl={newCharacterExternalSkinUrl}
+              isDisabled={isCreatingCharacter === true}
+              onDescriptionChange={(description) => {
+                setNewCharacterDescription(description);
+                setCreateCharacterErrorMessage(null);
+              }}
+              onExternalSkinUrlChange={(externalSkinUrl) => {
+                setNewCharacterExternalSkinUrl(externalSkinUrl);
+                setCreateCharacterErrorMessage(null);
+              }}
+            />
 
             <Button type="submit" disabled={isCreateCharacterDisabled === true}>
               {isCreatingCharacter === true ? "Adding…" : "Add character"}

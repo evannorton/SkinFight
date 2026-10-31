@@ -9,6 +9,8 @@ import {
 } from "~/lib/attack-defend-shading";
 
 export const MAX_CHARACTER_NAME_LENGTH = 120;
+export const MAX_DESCRIPTION_LENGTH = 1000;
+export const MAX_EXTERNAL_SKIN_URL_LENGTH = 2048;
 
 export type ParsedCharacterName =
   | { isValid: true; trimmedCharacterName: string }
@@ -126,4 +128,77 @@ export function parseOptionalThemeIdFieldValue(
     return { isValid: false, errorMessage: "Invalid theme selection." };
   }
   return { isValid: true, themeId: themeIdFieldValue };
+}
+
+export type ParsedOptionalDescription =
+  | { isValid: true; description: string | null }
+  | { isValid: false; errorMessage: string };
+
+export function parseOptionalDescriptionFieldValue(
+  descriptionFieldValue: FormDataEntryValue | null,
+): ParsedOptionalDescription {
+  if (descriptionFieldValue === null) {
+    return { isValid: true, description: null };
+  }
+  if (typeof descriptionFieldValue !== "string") {
+    return { isValid: false, errorMessage: "Invalid description." };
+  }
+  const trimmedDescription = descriptionFieldValue.trim();
+  if (trimmedDescription.length === 0) {
+    return { isValid: true, description: null };
+  }
+  if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
+    return {
+      isValid: false,
+      errorMessage: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.`,
+    };
+  }
+  return { isValid: true, description: trimmedDescription };
+}
+
+export type ParsedOptionalExternalSkinUrl =
+  | { isValid: true; externalSkinUrl: string | null }
+  | { isValid: false; errorMessage: string };
+
+function isHttpOrHttpsExternalSkinUrl(externalSkinUrl: string): boolean {
+  try {
+    const parsedExternalSkinUrl = new URL(externalSkinUrl);
+    if (parsedExternalSkinUrl.protocol === "http:") {
+      return true;
+    }
+    if (parsedExternalSkinUrl.protocol === "https:") {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function parseOptionalExternalSkinUrlFieldValue(
+  externalSkinUrlFieldValue: FormDataEntryValue | null,
+): ParsedOptionalExternalSkinUrl {
+  if (externalSkinUrlFieldValue === null) {
+    return { isValid: true, externalSkinUrl: null };
+  }
+  if (typeof externalSkinUrlFieldValue !== "string") {
+    return { isValid: false, errorMessage: "Invalid external skin URL." };
+  }
+  const trimmedExternalSkinUrl = externalSkinUrlFieldValue.trim();
+  if (trimmedExternalSkinUrl.length === 0) {
+    return { isValid: true, externalSkinUrl: null };
+  }
+  if (trimmedExternalSkinUrl.length > MAX_EXTERNAL_SKIN_URL_LENGTH) {
+    return {
+      isValid: false,
+      errorMessage: `External skin URL must be ${MAX_EXTERNAL_SKIN_URL_LENGTH} characters or fewer.`,
+    };
+  }
+  if (isHttpOrHttpsExternalSkinUrl(trimmedExternalSkinUrl) === false) {
+    return {
+      isValid: false,
+      errorMessage: "External skin URL must be a valid http or https URL.",
+    };
+  }
+  return { isValid: true, externalSkinUrl: trimmedExternalSkinUrl };
 }
