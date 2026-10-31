@@ -43,7 +43,9 @@ declare module "@auth/core/jwt" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
+    DiscordProvider({
+      issuer: "https://discord.com",
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
