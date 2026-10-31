@@ -46,6 +46,8 @@ function buildViewerActionAvailability(params: {
   viewerUserId: string | null;
   characterTeamId: string;
   characterCreatorUserId: string;
+  viewerHasExistingAttackOnCharacter: boolean;
+  viewerHasExistingDefendOnCharacter: boolean;
 }): CharacterPageViewerActionAvailability {
   if (params.isCharacterInCurrentOngoingEvent === false) {
     return {
@@ -65,9 +67,13 @@ function buildViewerActionAvailability(params: {
     params.viewerUserId !== null &&
     params.viewerUserId === params.characterCreatorUserId;
   return {
-    canShowAttackButton: isCharacterOnViewerTeam === false,
+    canShowAttackButton:
+      isCharacterOnViewerTeam === false &&
+      params.viewerHasExistingAttackOnCharacter === false,
     canShowDefendButton:
-      isCharacterOnViewerTeam === true && isViewerCharacterCreator === false,
+      isCharacterOnViewerTeam === true &&
+      isViewerCharacterCreator === false &&
+      params.viewerHasExistingDefendOnCharacter === false,
   };
 }
 
@@ -202,12 +208,25 @@ export async function getCharacterPageForDisplay(params: {
     viewerTeamId = viewerParticipation?.teamId ?? null;
   }
 
+  const viewerHasExistingAttackOnCharacter =
+    params.viewerUserId !== null &&
+    characterRow.attacks.some((attackRow) => {
+      return attackRow.userId === params.viewerUserId;
+    });
+  const viewerHasExistingDefendOnCharacter =
+    params.viewerUserId !== null &&
+    characterRow.defends.some((defendRow) => {
+      return defendRow.userId === params.viewerUserId;
+    });
+
   const viewerActionAvailability = buildViewerActionAvailability({
     isCharacterInCurrentOngoingEvent,
     viewerTeamId,
     viewerUserId: params.viewerUserId,
     characterTeamId: characterRow.teamId,
     characterCreatorUserId: characterRow.userId,
+    viewerHasExistingAttackOnCharacter,
+    viewerHasExistingDefendOnCharacter,
   });
 
   let submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[] = [];

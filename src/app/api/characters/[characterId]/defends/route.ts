@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { Prisma } from "../../../../../../generated/prisma";
 import { authorizeCharacterAttackDefendSubmission } from "~/server/character-attack-defend-authorization";
 import {
   parseAttackDefendShadingFieldValue,
@@ -115,21 +116,38 @@ export async function POST(
     );
   }
 
-  const createdDefend = await db.defend.create({
-    data: {
-      characterId,
-      userId,
-      teamId: authorizationResult.submitterTeamId,
-      eventId: authorizationResult.eventId,
-      themeId: validatedThemeId.themeId,
-      file: publicFileUrl,
-      shading: parsedShading.shading,
-    },
-    select: {
-      id: true,
-      file: true,
-    },
-  });
+  let createdDefend: { id: string; file: string };
+  try {
+    createdDefend = await db.defend.create({
+      data: {
+        characterId,
+        userId,
+        teamId: authorizationResult.submitterTeamId,
+        eventId: authorizationResult.eventId,
+        themeId: validatedThemeId.themeId,
+        file: publicFileUrl,
+        shading: parsedShading.shading,
+      },
+      select: {
+        id: true,
+        file: true,
+      },
+    });
+  } catch (error: unknown) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You have already submitted a friendly team Attack on this character.",
+        },
+        { status: 400 },
+      );
+    }
+    throw error;
+  }
 
   return NextResponse.json({ defend: createdDefend }, { status: 201 });
 }

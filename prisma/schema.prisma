@@ -228,6 +228,7 @@ model Attack {
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
     theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
 
+    @@unique([userId, characterId])
     @@index([characterId])
     @@index([eventId])
     @@index([userId])
@@ -253,6 +254,7 @@ model Defend {
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
     theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
 
+    @@unique([userId, characterId])
     @@index([characterId])
     @@index([eventId])
     @@index([userId])

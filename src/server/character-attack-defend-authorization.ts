@@ -58,6 +58,24 @@ export async function authorizeCharacterAttackDefendSubmission(params: {
         httpStatus: 400,
       };
     }
+
+    const existingAttackForUserOnCharacter = await db.attack.findUnique({
+      where: {
+        userId_characterId: {
+          userId: params.userId,
+          characterId: params.characterId,
+        },
+      },
+      select: { id: true },
+    });
+    if (existingAttackForUserOnCharacter !== null) {
+      return {
+        isAuthorized: false,
+        errorMessage:
+          "You have already submitted an enemy team attack on this character.",
+        httpStatus: 400,
+      };
+    }
   }
 
   if (params.submissionKind === "defend") {
@@ -74,6 +92,24 @@ export async function authorizeCharacterAttackDefendSubmission(params: {
         isAuthorized: false,
         errorMessage:
           "You cannot submit a friendly team Attack on a character you created.",
+        httpStatus: 400,
+      };
+    }
+
+    const existingDefendForUserOnCharacter = await db.defend.findUnique({
+      where: {
+        userId_characterId: {
+          userId: params.userId,
+          characterId: params.characterId,
+        },
+      },
+      select: { id: true },
+    });
+    if (existingDefendForUserOnCharacter !== null) {
+      return {
+        isAuthorized: false,
+        errorMessage:
+          "You have already submitted a friendly team Attack on this character.",
         httpStatus: 400,
       };
     }
