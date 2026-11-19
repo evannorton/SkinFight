@@ -21,6 +21,7 @@ import { OptionalSkinMetadataFields } from "~/app/_components/optional-skin-meta
 import { SkinMetadataDisplay } from "~/app/_components/skin-metadata-display";
 import {
   ATTACK_DEFEND_SHADING_OPTIONS,
+  ATTACK_DEFEND_THEME_POINT_MULTIPLIER,
   DEFEND_NON_FRIDAY_POINT_MULTIPLIER,
   formatAttackDefendShadingLabelWithPointValue,
   isAttackDefendShadingValue,
@@ -380,6 +381,14 @@ export function CharacterPageAttackDefendSection(
       ? DEFEND_NON_FRIDAY_POINT_MULTIPLIER
       : 1;
 
+  const themeSubmissionPointMultiplier =
+    selectedSubmissionThemeId !== null
+      ? ATTACK_DEFEND_THEME_POINT_MULTIPLIER
+      : 1;
+
+  const submissionShadingPointMultiplier =
+    defendSubmissionPointMultiplier * themeSubmissionPointMultiplier;
+
   const submissionModalDescription =
     openSubmissionModalKind === "attack"
       ? "Upload a PNG image for this enemy team attack."
@@ -480,7 +489,7 @@ export function CharacterPageAttackDefendSection(
                             <RadioGroup.Item value={shadingOption} />
                             {formatAttackDefendShadingLabelWithPointValue(
                               shadingOption,
-                              defendSubmissionPointMultiplier,
+                              submissionShadingPointMultiplier,
                             )}
                           </Flex>
                         </Text>
@@ -498,7 +507,8 @@ export function CharacterPageAttackDefendSection(
                     weight="medium"
                     htmlFor="character-submission-theme"
                   >
-                    Theme (optional)
+                    Theme (optional · {ATTACK_DEFEND_THEME_POINT_MULTIPLIER}x
+                    points)
                   </Text>
                   <Select.Root
                     value={
