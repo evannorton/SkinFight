@@ -34,6 +34,7 @@ function buildSiteHeaderNavLinkItems(
       label: "Current event",
     });
   }
+  navLinkItems.push({ href: "/support", label: "Support" });
   if (props.isUserSignedIn === true && props.isSessionUserAdmin === true) {
     navLinkItems.push({ href: "/dashboard", label: "Dashboard" });
   }

@@ -9,6 +9,7 @@ import { AdminHiddenCharactersSection } from "~/app/dashboard/admin-hidden-chara
 import { AdminHiddenDefendsSection } from "~/app/dashboard/admin-hidden-defends-section";
 import { AdminPromoteModeratorSection } from "~/app/dashboard/admin-promote-moderator-section";
 import { AdminStaffSection } from "~/app/dashboard/admin-staff-section";
+import { AdminSupportSubmissionsSection } from "~/app/dashboard/admin-support-submissions-section";
 import { AdminTeamsSection } from "~/app/dashboard/admin-teams-section";
 import { hasAdminPrivileges, isAdminRole } from "~/lib/user-role";
 import { auth } from "~/server/auth";
@@ -43,6 +44,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
       <AdminHiddenCharactersSection />
       <AdminHiddenAttacksSection />
       <AdminHiddenDefendsSection />
+      <AdminSupportSubmissionsSection />
     </Box>
   );
 }

@@ -1,6 +1,7 @@
 import { eventParticipationRouter } from "~/server/api/routers/event-participation";
 import { eventRouter } from "~/server/api/routers/event";
 import { postRouter } from "~/server/api/routers/post";
+import { supportRouter } from "~/server/api/routers/support";
 import { teamRouter } from "~/server/api/routers/team";
 import { userRouter } from "~/server/api/routers/user";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   team: teamRouter,
   eventParticipation: eventParticipationRouter,
   user: userRouter,
+  support: supportRouter,
 });
 
 // export type definition of API
