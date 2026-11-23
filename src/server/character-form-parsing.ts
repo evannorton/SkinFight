@@ -3,10 +3,6 @@ import {
   isUploadedFilePngImage,
   MAX_CHARACTER_PNG_FILE_SIZE_BYTES,
 } from "~/server/character-png-validation";
-import {
-  isAttackDefendShadingValue,
-  type AttackDefendShadingValue,
-} from "~/lib/attack-defend-shading";
 
 export const MAX_CHARACTER_NAME_LENGTH = 120;
 export const MAX_DESCRIPTION_LENGTH = 1000;
@@ -95,20 +91,21 @@ export async function parseOptionalCharacterPngFileFieldValue(
   };
 }
 
-export type ParsedAttackDefendShading =
-  | { isValid: true; shading: AttackDefendShadingValue }
+export type ParsedAttackDefendShadingId =
+  | { isValid: true; shadingId: string }
   | { isValid: false; errorMessage: string };
 
-export function parseAttackDefendShadingFieldValue(
-  shadingFieldValue: FormDataEntryValue | null,
-): ParsedAttackDefendShading {
-  if (typeof shadingFieldValue !== "string") {
+export function parseAttackDefendShadingIdFieldValue(
+  shadingIdFieldValue: FormDataEntryValue | null,
+): ParsedAttackDefendShadingId {
+  if (typeof shadingIdFieldValue !== "string") {
     return { isValid: false, errorMessage: "Shading is required." };
   }
-  if (isAttackDefendShadingValue(shadingFieldValue) === false) {
-    return { isValid: false, errorMessage: "Shading must be A, B, or C." };
+  const trimmedShadingId = shadingIdFieldValue.trim();
+  if (trimmedShadingId.length === 0) {
+    return { isValid: false, errorMessage: "Shading is required." };
   }
-  return { isValid: true, shading: shadingFieldValue };
+  return { isValid: true, shadingId: trimmedShadingId };
 }
 
 export type ParsedOptionalThemeId =

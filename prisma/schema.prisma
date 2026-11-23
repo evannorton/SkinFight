@@ -12,12 +12,6 @@ enum UserRole {
     MODERATOR
 }
 
-enum AttackDefendShading {
-    ONE
-    TWO
-    THREE
-}
-
 datasource db {
     provider = "postgresql"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
@@ -129,6 +123,19 @@ model Team {
     defends             Defend[]
 }
 
+model Shading {
+    id         String   @id @default(cuid())
+    label      String
+    pointValue Int
+    sortOrder  Int
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    attacks    Attack[]
+    defends    Defend[]
+
+    @@index([sortOrder])
+}
+
 model EventTeam {
     id        String   @id @default(cuid())
     eventId   String
@@ -228,7 +235,7 @@ model Character {
 }
 
 model Attack {
-    id              String              @id @default(cuid())
+    id              String   @id @default(cuid())
     characterId     String
     userId          String
     teamId          String
@@ -237,26 +244,28 @@ model Attack {
     file            String
     description     String?
     externalSkinUrl String?
-    shading         AttackDefendShading
-    isHidden        Boolean             @default(false)
-    createdAt       DateTime            @default(now())
-    updatedAt       DateTime            @updatedAt
+    shadingId       String
+    isHidden        Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
     theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
+    shading   Shading   @relation(fields: [shadingId], references: [id], onDelete: Restrict)
 
     @@unique([userId, characterId])
     @@index([characterId])
     @@index([eventId])
     @@index([userId])
     @@index([themeId])
+    @@index([shadingId])
 }
 
 model Defend {
-    id              String              @id @default(cuid())
+    id              String   @id @default(cuid())
     characterId     String
     userId          String
     teamId          String
@@ -265,22 +274,24 @@ model Defend {
     file            String
     description     String?
     externalSkinUrl String?
-    shading         AttackDefendShading
-    isHidden        Boolean             @default(false)
-    createdAt       DateTime            @default(now())
-    updatedAt       DateTime            @updatedAt
+    shadingId       String
+    isHidden        Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 
     character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
     event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
     theme     Theme?    @relation(fields: [themeId], references: [id], onDelete: SetNull)
+    shading   Shading   @relation(fields: [shadingId], references: [id], onDelete: Restrict)
 
     @@unique([userId, characterId])
     @@index([characterId])
     @@index([eventId])
     @@index([userId])
     @@index([themeId])
+    @@index([shadingId])
 }
 
 model VerificationToken {

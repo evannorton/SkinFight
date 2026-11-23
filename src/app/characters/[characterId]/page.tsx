@@ -82,6 +82,7 @@ export default async function CharacterDetailPage(
     characterDetail,
     viewerActionAvailability,
     submissionThemesForCurrentWeek,
+    submissionShadingOptions,
     attacks,
     defends,
   } = characterPageForDisplay;
@@ -193,6 +194,7 @@ export default async function CharacterDetailPage(
         viewerActionAvailability={viewerActionAvailability}
         viewerIsAdmin={viewerIsAdmin}
         submissionThemesForCurrentWeek={submissionThemesForCurrentWeek}
+        submissionShadingOptions={submissionShadingOptions}
         attacks={attacks}
         defends={defends}
         initialAttackId={initialAttackId}

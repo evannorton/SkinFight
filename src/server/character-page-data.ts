@@ -8,7 +8,14 @@ import type {
   ThemeForAttackDefendSubmission,
 } from "~/lib/character-page-for-display";
 import { getThemesForCurrentEventWeek } from "~/server/event-current-week-themes";
+import { listShadingsForSubmission } from "~/server/shading";
 import { db } from "~/server/db";
+
+const attackDefendShadingSelect = {
+  id: true,
+  label: true,
+  pointValue: true,
+} as const;
 
 function buildUserDisplayName(params: {
   userName: string | null;
@@ -117,7 +124,9 @@ export async function getCharacterPageForDisplay(params: {
           file: true,
           description: true,
           externalSkinUrl: true,
-          shading: true,
+          shading: {
+            select: attackDefendShadingSelect,
+          },
           isHidden: true,
           userId: true,
           teamId: true,
@@ -146,7 +155,9 @@ export async function getCharacterPageForDisplay(params: {
           file: true,
           description: true,
           externalSkinUrl: true,
-          shading: true,
+          shading: {
+            select: attackDefendShadingSelect,
+          },
           isHidden: true,
           userId: true,
           teamId: true,
@@ -242,6 +253,8 @@ export async function getCharacterPageForDisplay(params: {
     });
   }
 
+  const submissionShadingOptions = await listShadingsForSubmission();
+
   const attacks: CharacterAttackForDisplay[] = characterRow.attacks
     .filter((attackRow) => {
       if (params.viewerIsAdmin === true) {
@@ -332,6 +345,7 @@ export async function getCharacterPageForDisplay(params: {
     },
     viewerActionAvailability,
     submissionThemesForCurrentWeek,
+    submissionShadingOptions,
     attacks,
     defends,
   };

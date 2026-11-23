@@ -20,13 +20,11 @@ import { CharacterSkinViewer } from "~/app/_components/character-skin-viewer";
 import { OptionalSkinMetadataFields } from "~/app/_components/optional-skin-metadata-fields";
 import { SkinMetadataDisplay } from "~/app/_components/skin-metadata-display";
 import {
-  ATTACK_DEFEND_SHADING_OPTIONS,
   ATTACK_DEFEND_THEME_POINT_MULTIPLIER,
   DEFEND_NON_FRIDAY_POINT_MULTIPLIER,
   formatAttackDefendShadingLabelWithPointValue,
-  isAttackDefendShadingValue,
   isDefendFullPointsDay,
-  type AttackDefendShadingValue,
+  type AttackDefendShadingForDisplay,
 } from "~/lib/attack-defend-shading";
 import { buildCharactersPagePath } from "~/lib/characters-grid-filters";
 import { parseJsonApiErrorMessage } from "~/lib/parse-json-api-error-message";
@@ -45,6 +43,7 @@ type CharacterPageAttackDefendSectionProps = {
   viewerActionAvailability: CharacterPageViewerActionAvailability;
   viewerIsAdmin: boolean;
   submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[];
+  submissionShadingOptions: AttackDefendShadingForDisplay[];
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
   initialAttackId: string | null;
@@ -59,7 +58,7 @@ type ViewingAttackOrDefend = {
   fileUrl: string;
   description: string | null;
   externalSkinUrl: string | null;
-  shading: AttackDefendShadingValue;
+  shading: AttackDefendShadingForDisplay;
   themeName: string | null;
   isHidden: boolean;
   submitterUserId: string;
@@ -203,6 +202,7 @@ export function CharacterPageAttackDefendSection(
     viewerActionAvailability,
     viewerIsAdmin,
     submissionThemesForCurrentWeek,
+    submissionShadingOptions,
     attacks,
     defends,
     initialAttackId,
@@ -217,8 +217,8 @@ export function CharacterPageAttackDefendSection(
     useState<ViewingAttackOrDefend>(null);
   const [selectedSubmissionPngFile, setSelectedSubmissionPngFile] =
     useState<File | null>(null);
-  const [selectedSubmissionShading, setSelectedSubmissionShading] =
-    useState<AttackDefendShadingValue | null>(null);
+  const [selectedSubmissionShadingId, setSelectedSubmissionShadingId] =
+    useState<string | null>(null);
   const [selectedSubmissionThemeId, setSelectedSubmissionThemeId] = useState<
     string | null
   >(null);
@@ -278,7 +278,7 @@ export function CharacterPageAttackDefendSection(
   const isSubmitDisabled =
     isSubmittingAttackOrDefend === true ||
     selectedSubmissionPngFile === null ||
-    selectedSubmissionShading === null;
+    selectedSubmissionShadingId === null;
 
   const handleSubmissionPngFileInputChange = (
     event: ChangeEvent<HTMLInputElement>,
@@ -291,7 +291,7 @@ export function CharacterPageAttackDefendSection(
   const handleCloseSubmissionModal = (): void => {
     setOpenSubmissionModalKind(null);
     setSelectedSubmissionPngFile(null);
-    setSelectedSubmissionShading(null);
+    setSelectedSubmissionShadingId(null);
     setSelectedSubmissionThemeId(null);
     setSubmissionDescription("");
     setSubmissionExternalSkinUrl("");
@@ -314,7 +314,7 @@ export function CharacterPageAttackDefendSection(
     if (selectedSubmissionPngFile === null) {
       return;
     }
-    if (selectedSubmissionShading === null) {
+    if (selectedSubmissionShadingId === null) {
       return;
     }
 
@@ -323,7 +323,7 @@ export function CharacterPageAttackDefendSection(
 
     const submissionFormData = new FormData();
     submissionFormData.append("file", selectedSubmissionPngFile);
-    submissionFormData.append("shading", selectedSubmissionShading);
+    submissionFormData.append("shadingId", selectedSubmissionShadingId);
     submissionFormData.append("description", submissionDescription);
     submissionFormData.append("externalSkinUrl", submissionExternalSkinUrl);
     if (selectedSubmissionThemeId !== null) {
@@ -472,21 +472,26 @@ export function CharacterPageAttackDefendSection(
                   Shading
                 </Text>
                 <RadioGroup.Root
-                  value={selectedSubmissionShading ?? ""}
+                  value={selectedSubmissionShadingId ?? ""}
                   disabled={isSubmittingAttackOrDefend === true}
                   onValueChange={(selectedValue) => {
-                    if (isAttackDefendShadingValue(selectedValue) === true) {
-                      setSelectedSubmissionShading(selectedValue);
-                      setSubmissionErrorMessage(null);
+                    const selectedShadingOption =
+                      submissionShadingOptions.find((shadingOption) => {
+                        return shadingOption.id === selectedValue;
+                      });
+                    if (typeof selectedShadingOption === "undefined") {
+                      return;
                     }
+                    setSelectedSubmissionShadingId(selectedShadingOption.id);
+                    setSubmissionErrorMessage(null);
                   }}
                 >
-                  <Flex gap="4">
-                    {ATTACK_DEFEND_SHADING_OPTIONS.map((shadingOption) => {
+                  <Flex gap="4" wrap="wrap">
+                    {submissionShadingOptions.map((shadingOption) => {
                       return (
-                        <Text key={shadingOption} as="label" size="2">
+                        <Text key={shadingOption.id} as="label" size="2">
                           <Flex align="center" gap="2">
-                            <RadioGroup.Item value={shadingOption} />
+                            <RadioGroup.Item value={shadingOption.id} />
                             {formatAttackDefendShadingLabelWithPointValue(
                               shadingOption,
                               submissionShadingPointMultiplier,

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "../../../../../../generated/prisma";
 import { authorizeCharacterAttackDefendSubmission } from "~/server/character-attack-defend-authorization";
 import {
-  parseAttackDefendShadingFieldValue,
+  parseAttackDefendShadingIdFieldValue,
   parseCharacterPngFileFieldValue,
   parseOptionalDescriptionFieldValue,
   parseOptionalExternalSkinUrlFieldValue,
@@ -14,6 +14,7 @@ import {
 import { getBackblazeEnvConfig } from "~/server/backblaze-env";
 import { uploadPngToBackblaze } from "~/server/backblaze-storage";
 import { validateOptionalThemeIdForEventSubmission } from "~/server/event-current-week-themes";
+import { validateShadingIdForSubmission } from "~/server/shading";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -55,12 +56,12 @@ export async function POST(
     );
   }
 
-  const parsedShading = parseAttackDefendShadingFieldValue(
-    formData.get("shading"),
+  const parsedShadingId = parseAttackDefendShadingIdFieldValue(
+    formData.get("shadingId"),
   );
-  if (parsedShading.isValid === false) {
+  if (parsedShadingId.isValid === false) {
     return NextResponse.json(
-      { error: parsedShading.errorMessage },
+      { error: parsedShadingId.errorMessage },
       { status: 400 },
     );
   }
@@ -117,6 +118,16 @@ export async function POST(
     );
   }
 
+  const validatedShadingId = await validateShadingIdForSubmission({
+    shadingId: parsedShadingId.shadingId,
+  });
+  if (validatedShadingId.isValid === false) {
+    return NextResponse.json(
+      { error: validatedShadingId.errorMessage },
+      { status: 400 },
+    );
+  }
+
   if (getBackblazeEnvConfig() === null) {
     return NextResponse.json(
       { error: "File storage is not configured." },
@@ -150,7 +161,7 @@ export async function POST(
         file: publicFileUrl,
         description: parsedDescription.description,
         externalSkinUrl: parsedExternalSkinUrl.externalSkinUrl,
-        shading: parsedShading.shading,
+        shadingId: validatedShadingId.shadingId,
       },
       select: {
         id: true,

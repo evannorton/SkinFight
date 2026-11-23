@@ -8,6 +8,7 @@ import { AdminHiddenAttacksSection } from "~/app/dashboard/admin-hidden-attacks-
 import { AdminHiddenCharactersSection } from "~/app/dashboard/admin-hidden-characters-section";
 import { AdminHiddenDefendsSection } from "~/app/dashboard/admin-hidden-defends-section";
 import { AdminPromoteModeratorSection } from "~/app/dashboard/admin-promote-moderator-section";
+import { AdminShadingSection } from "~/app/dashboard/admin-shading-section";
 import { AdminStaffSection } from "~/app/dashboard/admin-staff-section";
 import { AdminSupportSubmissionsSection } from "~/app/dashboard/admin-support-submissions-section";
 import { AdminTeamsSection } from "~/app/dashboard/admin-teams-section";
@@ -39,6 +40,7 @@ export default async function AdminDashboardPage(): Promise<ReactElement> {
       </Text>
       <AdminEventsSection />
       <AdminTeamsSection />
+      <AdminShadingSection />
       <AdminStaffSection canManageModerators={sessionUserIsAdmin} />
       {sessionUserIsAdmin === true && <AdminPromoteModeratorSection />}
       <AdminHiddenCharactersSection />

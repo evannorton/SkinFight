@@ -1,6 +1,7 @@
 import { eventParticipationRouter } from "~/server/api/routers/event-participation";
 import { eventRouter } from "~/server/api/routers/event";
 import { postRouter } from "~/server/api/routers/post";
+import { shadingRouter } from "~/server/api/routers/shading";
 import { supportRouter } from "~/server/api/routers/support";
 import { teamRouter } from "~/server/api/routers/team";
 import { userRouter } from "~/server/api/routers/user";
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   event: eventRouter,
   team: teamRouter,
+  shading: shadingRouter,
   eventParticipation: eventParticipationRouter,
   user: userRouter,
   support: supportRouter,

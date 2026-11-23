@@ -1,4 +1,4 @@
-import type { AttackDefendShadingValue } from "~/lib/attack-defend-shading";
+import type { AttackDefendShadingForDisplay } from "~/lib/attack-defend-shading";
 import type { CharacterDetailForDisplay } from "~/lib/character-detail-for-display";
 
 export type CharacterPageViewerActionAvailability = {
@@ -11,7 +11,7 @@ export type CharacterAttackForDisplay = {
   fileUrl: string;
   description: string | null;
   externalSkinUrl: string | null;
-  shading: AttackDefendShadingValue;
+  shading: AttackDefendShadingForDisplay;
   themeName: string | null;
   submitterUserId: string;
   submitterDisplayName: string;
@@ -25,7 +25,7 @@ export type CharacterDefendForDisplay = {
   fileUrl: string;
   description: string | null;
   externalSkinUrl: string | null;
-  shading: AttackDefendShadingValue;
+  shading: AttackDefendShadingForDisplay;
   themeName: string | null;
   submitterUserId: string;
   submitterDisplayName: string;
@@ -43,6 +43,7 @@ export type CharacterPageForDisplay = {
   characterDetail: CharacterDetailForDisplay;
   viewerActionAvailability: CharacterPageViewerActionAvailability;
   submissionThemesForCurrentWeek: ThemeForAttackDefendSubmission[];
+  submissionShadingOptions: AttackDefendShadingForDisplay[];
   attacks: CharacterAttackForDisplay[];
   defends: CharacterDefendForDisplay[];
 };
